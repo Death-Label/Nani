@@ -875,6 +875,9 @@
 </div>
 
 <script>
+
+const PROXY_URL = 'https://nani-proxy.sacertracinho.workers.dev/'; // ex: https://nani-proxy.seuusername.workers.dev
+
 const QUESTIONS = [
   // ═══ ESCOPO ═══
   {
@@ -1022,6 +1025,14 @@ const QUESTIONS = [
     id:"q24", text:"Que tipo de humor funciona para você?",
     options:["Comédia física / absurda","Ironia e sarcasmo","Humor negro","Sem humor — quero sério","Tanto faz / Irrelevante"]
   },
+,
+  {
+    section:"REFINAMENTO",
+    id:"q25r", text:"Por último: o que você definitivamente NÃO quer?",
+    grid:true,
+    options:["Nada muito lento","Nada muito violento","Nada muito complexo","Nada com comédia excessiva","Nada com traições e viradas de aliados","Sem restrições — surpreenda-me"],
+    openText:"Outra restrição importante..."
+  },
   {
     section:"REFINAMENTO",
     id:"q25", text:"Cite um filme que te marcou. O que mais te tocou nele?",
@@ -1116,8 +1127,8 @@ Máximo 2 frases por pergunta. Responda APENAS com o texto da pergunta.`;
     ? [{ role: 'user', content: `Comece com a primeira pergunta sobre "${similarAnimeName}".` }]
     : [...chatHistory.slice(0,-1).map(m=>({role:m.role,content:m.content})),{role:'user',content:userReply}];
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    const res = await fetch(PROXY_URL, {
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:300, system:systemPrompt, messages })
     });
     const data = await res.json();
@@ -1140,8 +1151,8 @@ Recomende exatamente 7 filmes. Exclua "${similarAnimeName}". Explique o que cada
 Responda APENAS em JSON válido sem markdown:
 {"tagline":"frase poética","perfil":"descrição do espectador","items":[{"titulo":"Nome","titulo_original":"Nome original","nota":"8.2/10 (TMDB)","generos":["Drama"],"duracao":"2h 14min","ano":"2019","pais":"Coreia do Sul","razao":"2-3 frases conectando ao filme amado"}]}`;
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST', headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    const res = await fetch(PROXY_URL, {
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ model:'claude-sonnet-4-5', max_tokens:4000, messages:[{role:'user',content:prompt}] })
     });
     const data = await res.json();
@@ -1304,8 +1315,8 @@ ${summary}
 INSTRUÇÕES: Analise todas as respostas. Ignore "Tanto faz / Irrelevante". Respostas livres têm peso extra. Inclua variedade. Não filtre por nota. Seja apaixonado e específico nas explicações.
 Responda APENAS em JSON válido sem markdown. Use EXATAMENTE estas chaves:
 {"tagline":"frase poética","perfil":"descrição do espectador em 1-2 linhas","items":[{"titulo":"Nome em português ou inglês","titulo_original":"Nome no idioma original","nota":"ex: 8.2/10 (TMDB)","generos":["Drama","Thriller"],"duracao":"ex: 2h 14min","ano":"ex: 2019","pais":"ex: Coreia do Sul","razao":"2-3 frases apaixonadas conectando ao perfil do usuário"}]}`;
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    const res = await fetch(PROXY_URL,{
+      method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:4000,messages:[{role:'user',content:prompt}]})
     });
     const data = await res.json();
@@ -1407,7 +1418,7 @@ JÁ VISTOS (substitua): ${seenTitles.join(', ')}
 Recomende EXATAMENTE ${seenTitles.length} filme(s) novo(s) que combinem com o perfil e não estejam na lista.
 JSON sem markdown: {"items":[{"titulo":"Nome","titulo_original":"Original","nota":"8.2/10 (TMDB)","generos":["Drama"],"duracao":"2h","ano":"2019","pais":"EUA","razao":"2-3 frases"}]}`;
   try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
+    const res=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2000,messages:[{role:'user',content:prompt}]})});
     const data=await res.json();
     const text=data.content.map(i=>i.text||'').join('');
     const result=JSON.parse(text.replace(/```json|```/g,'').trim());

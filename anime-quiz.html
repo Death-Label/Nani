@@ -991,6 +991,9 @@
 </div>
 
 <script>
+
+const PROXY_URL = 'https://nani-proxy.sacertracinho.workers.dev/'; // ex: https://nani-proxy.seuusername.workers.dev
+
 const QUESTIONS = [
   // ═══ ESCOPO ═══
   {
@@ -1194,7 +1197,7 @@ const QUESTIONS = [
     section:"REFINAMENTO",
     id:"q26", text:"Por último: o que você definitivamente NÃO quer?",
     grid:true,
-    options:["Nada muito lento","Nada muito violento","Nada muito infantil","Nada muito complexo","Nada com comédia excessiva","Sem restrições — surpreenda-me"],
+    options:["Nada muito lento","Nada muito violento","Nada muito infantil","Nada muito complexo","Nada com comédia excessiva","Nada com traições e viradas de aliados","Sem restrições — surpreenda-me"],
     openText:"Outra restrição importante..."
   }
 ];
@@ -1317,9 +1320,9 @@ Responda APENAS com o texto da pergunta, sem prefixos nem introduções.`;
        { role: 'user', content: userReply }];
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(PROXY_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
         max_tokens: 300,
@@ -1377,9 +1380,9 @@ Responda APENAS em JSON válido sem markdown:
 }`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch(PROXY_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-5',
         max_tokens: 4000,
@@ -1640,7 +1643,7 @@ Responda APENAS em JSON válido sem markdown:
   ]
 }`;
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch(PROXY_URL, {
       method:"POST",
       headers:{"Content-Type":"application/json","anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
       body:JSON.stringify({
@@ -1824,9 +1827,9 @@ Responda APENAS em JSON válido sem markdown:
 }`;
 
   try {
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
+    const res = await fetch(PROXY_URL, {
       method: "POST",
-      headers: {"Content-Type": "application/json", "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true"},
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
         model: "claude-sonnet-4-5",
         max_tokens: 2000,
