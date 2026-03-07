@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>何？— Nani</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700;900&family=Space+Mono:wght@400;700&family=Zen+Kaku+Gothic+New:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --card: #111118;
+    --border: #1e1e2e;
+    --text: #e8e8f0;
+    --muted: #52526a;
+
+    --anime:   #e84545;
+    --filme:   #f5a623;
+    --serie:   #3bb8a0;
+    --dorama:  #c084fc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* ── GRAIN OVERLAY ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.025;
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  /* ── AMBIENT GLOWS ── */
+  .glow {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    pointer-events: none;
+    z-index: 0;
+    transition: opacity 1s ease;
+  }
+  .glow-1 { width: 500px; height: 500px; top: -200px; left: -150px; background: rgba(232,69,69,0.06); }
+  .glow-2 { width: 400px; height: 400px; bottom: -150px; right: -100px; background: rgba(192,132,252,0.05); }
+  .glow-3 { width: 300px; height: 300px; top: 40%; left: 40%; background: rgba(59,184,160,0.04); }
+
+  /* ── LAYOUT ── */
+  .container {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+  }
+
+  /* ── HEADER ── */
+  .hero {
+    text-align: center;
+    margin-bottom: 72px;
+    animation: fadeUp 1s ease both;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 6px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .hero-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: clamp(72px, 16vw, 140px);
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -4px;
+    margin-bottom: 4px;
+    background: linear-gradient(135deg, #e8e8f0 0%, #6b6b80 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-title-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(11px, 2vw, 14px);
+    letter-spacing: 6px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 16px;
+  }
+
+  .hero-rule {
+    width: 40px;
+    height: 1px;
+    background: var(--muted);
+    margin: 24px auto;
+    opacity: 0.4;
+  }
+
+  .hero-desc {
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+    line-height: 1.7;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+
+  /* ── MEDIA GRID ── */
+  .media-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    width: 100%;
+    max-width: 900px;
+    animation: fadeUp 1s 0.2s ease both;
+  }
+
+  .media-card {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px 20px 28px;
+    background: var(--card);
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1),
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+  }
+
+  /* Colored bottom accent line */
+  .media-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--c);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* Glow on hover */
+  .media-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 100%, var(--c), transparent);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .media-card:hover {
+    transform: translateY(-6px);
+    border-color: color-mix(in srgb, var(--c) 40%, transparent);
+    box-shadow: 0 20px 60px color-mix(in srgb, var(--c) 15%, transparent);
+  }
+
+  .media-card:hover::before { transform: scaleX(1); }
+  .media-card:hover::after { opacity: 0.06; }
+
+  .media-card[data-media="anime"]  { --c: var(--anime); }
+  .media-card[data-media="filme"]  { --c: var(--filme); }
+  .media-card[data-media="serie"]  { --c: var(--serie); }
+  .media-card[data-media="dorama"] { --c: var(--dorama); }
+
+  .media-kanji {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 44px;
+    font-weight: 700;
+    color: var(--c);
+    line-height: 1;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease;
+    display: block;
+  }
+  .media-card:hover .media-kanji { transform: scale(1.08); }
+
+  .media-name {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .media-jp {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .media-pill {
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+    color: var(--c);
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  .media-card:hover .media-pill {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .media-pill.soon {
+    border-color: color-mix(in srgb, var(--muted) 30%, transparent);
+    color: var(--muted);
+  }
+
+  /* COMING SOON overlay */
+  .media-card.soon {
+    cursor: default;
+    pointer-events: none;
+  }
+  .media-card.soon .media-kanji { opacity: 0.35; }
+  .media-card.soon .media-name  { opacity: 0.35; }
+  .media-card.soon .media-jp    { opacity: 0.35; }
+  .media-card.soon::before { display: none; }
+  .media-card.soon::after  { display: none; }
+
+  .soon-badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 64px;
+    text-align: center;
+    animation: fadeUp 1s 0.4s ease both;
+  }
+
+  .footer-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    opacity: 0.5;
+  }
+
+  /* ── VERTICAL SIDE TEXT ── */
+  .side-text {
+    position: fixed;
+    font-family: 'Space Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    opacity: 0.2;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    user-select: none;
+    pointer-events: none;
+  }
+  .side-text.left  { left: 20px; top: 50%; transform: translateY(-50%); }
+  .side-text.right { right: 20px; top: 50%; transform: translateY(-50%) rotate(180deg); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 720px) {
+    .media-grid { grid-template-columns: repeat(2, 1fr); }
+    .hero-title { letter-spacing: -2px; }
+    .side-text { display: none; }
+  }
+
+  @media (max-width: 420px) {
+    .media-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .media-card { padding: 24px 14px 20px; }
+    .media-kanji { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="glow glow-1"></div>
+<div class="glow glow-2"></div>
+<div class="glow glow-3"></div>
+
+<span class="side-text left">DESCOBERTA // MÍDIA // ORÁCULO</span>
+<span class="side-text right">何を観る？何を見る？</span>
+
+<div class="container">
+
+  <div class="hero">
+    <div class="hero-eyebrow">// oráculo de mídia</div>
+    <div class="hero-title">何？</div>
+    <div class="hero-title-sub">nani — o que assistir?</div>
+    <div class="hero-rule"></div>
+    <p class="hero-desc">Escolha o universo. A IA encontra a história certa para você — agora, neste momento.</p>
+  </div>
+
+  <div class="media-grid">
+
+    <a class="media-card" data-media="anime" href="anime-quiz.html">
+      <span class="media-kanji">観</span>
+      <div class="media-name">Anime</div>
+      <div class="media-jp">アニメ</div>
+      <span class="media-pill">EXPLORAR →</span>
+    </a>
+
+    <a class="media-card" data-media="filme" href="filmes.html">
+      <span class="media-kanji">映</span>
+      <div class="media-name">Filmes</div>
+      <div class="media-jp">映画</div>
+      <span class="media-pill">EXPLORAR →</span>
+    </a>
+
+    <a class="media-card" data-media="serie" href="series.html">
+      <span class="media-kanji">劇</span>
+      <div class="media-name">Séries</div>
+      <div class="media-jp">ドラマシリーズ</div>
+      <span class="media-pill">EXPLORAR →</span>
+    </a>
+
+    <a class="media-card" data-media="dorama" href="doramas.html">
+      <span class="media-kanji">韓</span>
+      <div class="media-name">Doramas</div>
+      <div class="media-jp">韓国ドラマ</div>
+      <span class="media-pill">EXPLORAR →</span>
+    </a>
+
+  </div>
+
+  <div class="footer">
+    <div class="footer-text">YOMI AGUARDA // ESCOLHA SEU UNIVERSO // TODOS OS PORTAIS ABERTOS</div>
+  </div>
+
+</div>
+
+<script>
+  // Subtle ambient glow that follows the cursor
+  document.addEventListener('mousemove', e => {
+    const x = (e.clientX / window.innerWidth) * 100;
+    const y = (e.clientY / window.innerHeight) * 100;
+    document.querySelector('.glow-3').style.left = `${x - 15}%`;
+    document.querySelector('.glow-3').style.top  = `${y - 15}%`;
+  });
+
+  // Staggered card entrance
+  document.querySelectorAll('.media-card').forEach((card, i) => {
+    card.style.animation = `fadeUp 0.6s ${0.3 + i * 0.08}s ease both`;
+  });
+</script>
+</body>
+</html>
