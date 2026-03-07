@@ -1310,6 +1310,7 @@ async function submitQuiz() {
       return `Pergunta: ${q.text}\nResposta: ${ans}`;
     }).join('\n\n');
     const prompt = `Você é um especialista em séries de televisão. Analise o perfil abaixo e recomende exatamente 7 SÉRIES DE TV. NUNCA recomende filmes. Apenas séries — com episódios e temporadas.
+IMPORTANTE: Use SEMPRE o título em português do Brasil quando existir (ex: 'Os Suspeitos' e não 'Prisoners'). Só use título em inglês se não houver versão brasileira oficial.
 PERFIL:
 ${summary}
 INSTRUÇÕES: Analise todas as respostas. Ignore "Tanto faz / Irrelevante". Respostas livres têm peso extra. Inclua variedade. Não filtre por nota. Seja apaixonado e específico nas explicações.

@@ -1308,6 +1308,7 @@ async function submitQuiz() {
       return `Pergunta: ${q.text}\nResposta: ${ans}`;
     }).join('\n\n');
     const prompt = `Você é um especialista apaixonado em doramas asiáticos com conhecimento profundo de kdrama, jdrama e cdrama. Analise o perfil abaixo e recomende exatamente 7 doramas. Inclua variedade de países (kdrama, jdrama, cdrama) quando o perfil permitir.
+IMPORTANTE: Use SEMPRE o título em português do Brasil quando existir (ex: 'Os Suspeitos' e não 'Prisoners'). Só use título em inglês se não houver versão brasileira oficial.
 PERFIL:
 ${summary}
 INSTRUÇÕES: Analise todas as respostas. Ignore "Tanto faz / Irrelevante". Respostas livres têm peso extra. Inclua variedade. Não filtre por nota. Seja apaixonado e específico nas explicações.

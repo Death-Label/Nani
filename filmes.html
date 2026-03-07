@@ -1313,6 +1313,7 @@ async function submitQuiz() {
 PERFIL:
 ${summary}
 INSTRUÇÕES: Analise todas as respostas. Ignore "Tanto faz / Irrelevante". Respostas livres têm peso extra. Inclua variedade. Não filtre por nota. Seja apaixonado e específico nas explicações.
+IMPORTANTE: Use SEMPRE o título em português do Brasil quando existir (ex: 'Os Suspeitos' e não 'Prisoners'). Só use título em inglês se não houver versão brasileira oficial.
 Responda APENAS em JSON válido sem markdown. Use EXATAMENTE estas chaves:
 {"tagline":"frase poética","perfil":"descrição do espectador em 1-2 linhas","items":[{"titulo":"Nome em português ou inglês","titulo_original":"Nome no idioma original","nota":"ex: 8.2/10 (TMDB)","generos":["Drama","Thriller"],"duracao":"ex: 2h 14min","ano":"ex: 2019","pais":"ex: Coreia do Sul","razao":"2-3 frases apaixonadas conectando ao perfil do usuário"}]}`;
     const res = await fetch(PROXY_URL,{
