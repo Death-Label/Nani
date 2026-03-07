@@ -1025,7 +1025,7 @@ const QUESTIONS = [
     id:"q24", text:"Sua relação com séries canceladas antes do final:",
     options:["Evito completamente — preciso de conclusão","Aceito o risco se valer a pena","Não me importo — curto o que existe","Tanto faz / Irrelevante"]
   },
-,
+
   {
     section:"REFINAMENTO",
     id:"q25", text:"Por último: o que você definitivamente NÃO quer?",
@@ -1274,7 +1274,7 @@ function activateOpen(qId) {
   document.getElementById('errorInline')?.classList.remove('active');
 }
 function onOpenInput(qId) { answers[qId]={type:'open',text:document.getElementById(`oti_${qId}`).value.trim()}; }
-function isAnswered(q) { const a=answers[q.id]; if(!a)return false; if(a.type==='open'&&!a.text)return false; return true; }
+function isAnswered(q) { if(q.openTextOnly) return true; const a=answers[q.id]; if(!a)return false; if(a.type==='open'&&!a.text)return false; return true; }
 
 function goNext() {
   const q = QUESTIONS[currentIndex];
@@ -1309,7 +1309,7 @@ async function submitQuiz() {
       const ans=a?.type==='open'?`[resposta livre] "${a.text}"`:a?.text||'Não respondida';
       return `Pergunta: ${q.text}\nResposta: ${ans}`;
     }).join('\n\n');
-    const prompt = `Você é um especialista em televisão e cultura pop com conhecimento enciclopédico. Analise o perfil abaixo e recomende exatamente 7 séries.
+    const prompt = `Você é um especialista em séries de televisão. Analise o perfil abaixo e recomende exatamente 7 SÉRIES DE TV. NUNCA recomende filmes. Apenas séries — com episódios e temporadas.
 PERFIL:
 ${summary}
 INSTRUÇÕES: Analise todas as respostas. Ignore "Tanto faz / Irrelevante". Respostas livres têm peso extra. Inclua variedade. Não filtre por nota. Seja apaixonado e específico nas explicações.
@@ -1383,7 +1383,7 @@ function renderCard(item, idx, isNew) {
       ${item.nota?`<div class="anime-score">⭐ ${item.nota}</div>`:''}
       <div class="anime-reason">${item.razao}</div>
       <div class="anime-card-footer">
-        <a class="anime-link" href="https://www.themoviedb.org/search?query=${q}" target="_blank">↗ VER NO THEMOVIEDB</a>
+        <a class="anime-link" href="https://www.imdb.com/find/?q=${q}" target="_blank">↗ VER NO IMDB</a>
         <button class="btn-seen" onclick="markSeen('${item.titulo.replace(/'/g,"\\'")}')">✓ JÁ VI ESSE</button>
       </div>
     </div>`;

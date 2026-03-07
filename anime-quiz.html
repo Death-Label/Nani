@@ -1544,6 +1544,7 @@ function onOpenInput(qId) {
 }
 
 function isAnswered(q) {
+  if (q.openTextOnly) return true;
   const a = answers[q.id];
   if (!a) return false;
   if (a.type === 'open' && !a.text) return false;
@@ -1686,11 +1687,11 @@ function showResults(result, append = false) {
   if (!append) {
     document.getElementById('resultsTagline').textContent = result.tagline || 'Seus Animes';
     document.getElementById('resultsSubtitle').textContent = result.perfil || '';
-    currentAnimes = result.animes || [];
+    currentAnimes = result.animes || result.items || [];
     document.getElementById('resultsContainer').innerHTML = '';
   } else {
     // Append new animes, replacing seen ones
-    const newAnimes = (result.animes || []).filter(a =>
+    const newAnimes = (result.animes || result.items || []).filter(a =>
       !seenTitles.includes(a.titulo) && !currentAnimes.find(ca => ca.titulo === a.titulo)
     );
     // Remove seen cards from DOM and list

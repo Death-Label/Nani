@@ -1023,7 +1023,7 @@ const QUESTIONS = [
     id:"q24", text:"Sua relação com o ritmo dos primeiros episódios:",
     options:["Adoro construção lenta — vale a pena investir","Aceito até o episódio 4, depois precisa engatar","Precisa me prender no primeiro episódio","Tanto faz / Irrelevante"]
   },
-,
+
   {
     section:"REFINAMENTO",
     id:"q25", text:"Por último: o que você definitivamente NÃO quer?",
@@ -1272,7 +1272,7 @@ function activateOpen(qId) {
   document.getElementById('errorInline')?.classList.remove('active');
 }
 function onOpenInput(qId) { answers[qId]={type:'open',text:document.getElementById(`oti_${qId}`).value.trim()}; }
-function isAnswered(q) { const a=answers[q.id]; if(!a)return false; if(a.type==='open'&&!a.text)return false; return true; }
+function isAnswered(q) { if(q.openTextOnly) return true; const a=answers[q.id]; if(!a)return false; if(a.type==='open'&&!a.text)return false; return true; }
 
 function goNext() {
   const q = QUESTIONS[currentIndex];
