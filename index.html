@@ -1,0 +1,2156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>何？— Nani</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3C!-- Kasagi: curved top beam --%3E%3Cpath d='M2 26 Q32 13 62 26 L62 31 Q32 18 2 31 Z' fill='%23e84545'/%3E%3C!-- Shimagi: center cap block --%3E%3Crect x='25' y='16' width='14' height='7' rx='1' fill='%23e84545'/%3E%3C!-- Left pillar --%3E%3Crect x='13' y='24' width='7' height='36' rx='2' fill='%23e84545'/%3E%3C!-- Right pillar --%3E%3Crect x='44' y='24' width='7' height='36' rx='2' fill='%23e84545'/%3E%3C!-- Nuki: middle crossbeam --%3E%3Crect x='12' y='36' width='40' height='5' rx='1' fill='%23e84545'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700;900&family=Noto+Serif+KR:wght@300;400;700&family=DM+Serif+Display:ital@0;1&family=Playfair+Display:wght@400;700;900&family=Space+Mono:wght@400;700&family=Zen+Kaku+Gothic+New:wght@300;400;700&family=DM+Sans:wght@300;400;700&family=Lato:wght@300;400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   TOKENS / THEME
+═══════════════════════════════════════════ */
+:root {
+  --bg:        #0a0a0f;
+  --surface:   #12121a;
+  --card:      #1a1a26;
+  --card-hub:  #111118;
+  --border:    #1e1e2e;
+  --border-q:  #2a2a3a;
+  --text:      #e8e8f0;
+  --muted:     #6b6b80;
+  --muted-hub: #52526a;
+
+  /* per-module accent — overridden by JS */
+  --accent:    #e84545;
+  --accent2:   #f5a623;
+  --accent-rgb: 232,69,69;
+
+  /* per-module fonts */
+  --font-body:  'Zen Kaku Gothic New', sans-serif;
+  --font-serif: 'Noto Serif JP', serif;
+
+  /* ── Fluid spacing scale (calibrated: at 1280px ≈ base value) ── */
+  --sp-xs:  clamp(6px,  0.47vw, 10px);   /* ~6px */
+  --sp-sm:  clamp(10px, 0.78vw, 16px);   /* ~10px */
+  --sp-md:  clamp(16px, 1.25vw, 24px);   /* ~16px */
+  --sp-lg:  clamp(24px, 1.88vw, 36px);   /* ~24px */
+  --sp-xl:  clamp(36px, 2.81vw, 56px);   /* ~36px */
+  --sp-2xl: clamp(56px, 4.38vw, 88px);   /* ~56px */
+
+  /* ── Fluid container widths ── */
+  --container-hub:  clamp(680px, 70.3vw, 1200px);  /* media-grid: ~900px at 1280px */
+  --container-quiz: clamp(540px, 53.1vw, 860px);   /* quiz: ~680px at 1280px */
+}
+
+[data-theme="light"] {
+  --bg:        #f0f0f7;
+  --surface:   #ffffff;
+  --card:      #ffffff;
+  --card-hub:  #f8f8fc;
+  --border:    #d8d8ec;
+  --border-q:  #d0d0e4;
+  --text:      #1a1a2e;
+  --muted:     #8080a0;
+  --muted-hub: #9090b0;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════
+   THEME TOGGLE (fixed)
+═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   TOP CONTROLS — fixed container (player + toggle)
+═══════════════════════════════════════════ */
+#top-controls {
+  position: fixed;
+  top: 18px; right: 18px;
+  z-index: 200;
+  display: flex; align-items: center; gap: 8px;
+}
+
+#themeToggle {
+  width: 38px; height: 38px; flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--card-hub);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size:21px;
+  transition: all 0.2s ease;
+  color: var(--muted);
+}
+#themeToggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: scale(1.08);
+}
+
+/* ═══════════════════════════════════════════
+   GRAIN OVERLAY (shared)
+═══════════════════════════════════════════ */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.022;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* ═══════════════════════════════════════════
+   HUB PAGE
+═══════════════════════════════════════════ */
+#page-hub {
+  position: relative;
+  min-height: 100vh;
+}
+
+.hub-glow {
+  position: fixed; border-radius: 50%;
+  filter: blur(120px); pointer-events: none; z-index: 0;
+}
+.hub-glow-1 { width:500px; height:500px; top:-200px; left:-150px; background:rgba(232,69,69,0.06); }
+.hub-glow-2 { width:400px; height:400px; bottom:-150px; right:-100px; background:rgba(192,132,252,0.05); }
+.hub-glow-3 { width:300px; height:300px; top:40%; left:40%; background:rgba(59,184,160,0.04); transition:all 0.8s ease; }
+
+[data-theme="light"] .hub-glow-1 { background:rgba(232,69,69,0.04); }
+[data-theme="light"] .hub-glow-2 { background:rgba(192,132,252,0.035); }
+
+.hub-side-text {
+  position: fixed;
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(10px, 0.94vw, 13px); letter-spacing: 3px;
+  color: var(--muted-hub); opacity: 0.3;
+  writing-mode: vertical-rl; text-orientation: mixed;
+  user-select: none; pointer-events: none;
+}
+.hub-side-text.left  { left:20px; top:50%; transform:translateY(-50%); }
+.hub-side-text.right { right:20px; top:50%; transform:translateY(-50%) rotate(180deg); }
+
+.hub-container {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: clamp(40px, 4.69vw, 80px) clamp(16px, 1.88vw, 40px);
+}
+
+.hub-hero {
+  text-align: center; margin-bottom: clamp(44px, 5.63vw, 88px);
+  animation: fadeUp 1s ease both;
+}
+.hub-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(11px, 1.09vw, 16px); letter-spacing: 6px;
+  color: var(--muted-hub); text-transform: uppercase; margin-bottom: 20px;
+}
+.hub-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: clamp(83px, 16vw, 161px);
+  font-weight: 900; line-height: 0.9; letter-spacing: -4px; margin-bottom: 4px;
+  background: linear-gradient(135deg, var(--text) 0%, var(--muted) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hub-title-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(13px, 2vw, 16px); letter-spacing: 6px;
+  color: var(--muted-hub); text-transform: uppercase; margin-top: 16px;
+}
+.hub-rule {
+  width: 40px; height: 1px; background: var(--muted-hub);
+  margin: 24px auto; opacity: 0.4;
+}
+.hub-desc {
+  font-size: clamp(15px, 1.41vw, 20px); color: var(--muted-hub);
+  letter-spacing: 0.5px; line-height: 1.7;
+  max-width: clamp(280px, 26.6vw, 420px); margin: 0 auto;
+}
+
+.media-grid {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: clamp(10px, 1.09vw, 20px); width: 100%; max-width: var(--container-hub);
+  animation: fadeUp 1s 0.2s ease both;
+}
+
+.media-card {
+  position: relative;
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: clamp(22px, 2.5vw, 42px) clamp(14px, 1.56vw, 28px) clamp(18px, 2.19vw, 36px);
+  background: var(--card-hub);
+  cursor: pointer; text-decoration: none; color: var(--text);
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1), border-color 0.3s, box-shadow 0.3s;
+}
+.media-card::before {
+  content: ''; position: absolute; bottom:0; left:0; right:0; height:2px;
+  background: var(--c); transform: scaleX(0); transform-origin: left;
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+}
+.media-card::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 100%, var(--c), transparent);
+  opacity: 0; transition: opacity 0.4s ease;
+}
+.media-card:hover { transform: translateY(-6px); border-color: color-mix(in srgb, var(--c) 40%, transparent); box-shadow: 0 20px 60px color-mix(in srgb, var(--c) 15%, transparent); }
+.media-card:hover::before { transform: scaleX(1); }
+.media-card:hover::after  { opacity: 0.06; }
+
+.media-card[data-media="anime"]  { --c: #e84545; }
+.media-card[data-media="filme"]  { --c: #f5a623; }
+.media-card[data-media="serie"]  { --c: #3bb8a0; }
+.media-card[data-media="dorama"] { --c: #c084fc; }
+
+.media-kanji {
+  font-family: 'Noto Serif JP', serif;
+  font-size: clamp(40px, 4.61vw, 70px); font-weight: 700; color: var(--c);
+  line-height: 1; margin-bottom: clamp(10px, 1.09vw, 18px);
+  position: relative; z-index: 1;
+  transition: transform 0.3s ease; display: block;
+}
+.media-card:hover .media-kanji { transform: scale(1.08); }
+.media-name {
+  font-family: 'Space Mono', monospace; font-size: clamp(12px, 1.17vw, 17px);
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--text); margin-bottom: 8px; position: relative; z-index: 1;
+}
+.media-jp {
+  font-family: 'Noto Serif JP', serif; font-size: clamp(12px, 1.17vw, 17px);
+  color: var(--muted-hub); margin-bottom: clamp(14px, 1.56vw, 24px); position: relative; z-index: 1;
+}
+.media-pill {
+  font-family: 'Space Mono', monospace; font-size:12px; letter-spacing: 1.5px;
+  padding: 4px 10px; border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+  color: var(--c); position: relative; z-index: 1;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.25s, transform 0.25s;
+}
+.media-card:hover .media-pill { opacity: 1; transform: translateY(0); }
+
+.hub-footer {
+  margin-top: clamp(40px, 5vw, 80px); text-align: center;
+  animation: fadeUp 1s 0.4s ease both;
+}
+.hub-footer-text {
+  font-family: 'Space Mono', monospace; font-size: clamp(11px, 1.09vw, 15px);
+  color: var(--muted-hub); letter-spacing: 2px; opacity: 0.5;
+}
+
+/* ═══════════════════════════════════════════
+   QUIZ PAGE — SHARED
+═══════════════════════════════════════════ */
+#page-quiz {
+  display: none;
+  font-family: var(--font-body);
+}
+#page-quiz.active { display: block; }
+
+#page-quiz::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 20%, rgba(var(--accent-rgb),0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 80% 80%, rgba(var(--accent-rgb),0.03) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+
+.back-to-hub {
+  position: fixed; top: 20px; left: 20px;
+  font-family: 'Space Mono', monospace; font-size: clamp(11px, 1.09vw, 15px);
+  color: var(--muted); text-decoration: none; letter-spacing: 2px;
+  z-index: 10; transition: color 0.15s;
+}
+.back-to-hub:hover { color: var(--accent); }
+
+.jp-decoration {
+  position: fixed; font-family: var(--font-serif);
+  color: rgba(var(--accent-rgb),0.04);
+  pointer-events: none; z-index: 0; user-select: none; line-height: 1;
+}
+[data-theme="light"] .jp-decoration { color: rgba(var(--accent-rgb),0.06); }
+.jp-decoration.top-right    { top:-10px; right:-10px; font-size: clamp(80px, 10.94vw, 180px); }
+.jp-decoration.bottom-left  { bottom:-20px; left:-10px; font-size: clamp(100px, 14.06vw, 220px); }
+
+.quiz-container {
+  position: relative; z-index: 1;
+  max-width: var(--container-quiz); margin: 0 auto;
+  padding: clamp(28px, 3.13vw, 56px) clamp(16px, 1.88vw, 40px) clamp(56px, 6.25vw, 100px);
+}
+
+.quiz-header {
+  text-align: center; margin-bottom: clamp(36px, 4.38vw, 72px);
+  animation: fadeUp 0.8s ease both;
+}
+.quiz-header .eyebrow {
+  font-family: 'Space Mono', monospace; font-size: clamp(12px, 1.17vw, 17px);
+  letter-spacing: 4px; color: var(--accent);
+  text-transform: uppercase; margin-bottom: 16px;
+}
+.quiz-header h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(48px, 8vw, 83px); font-weight: 700;
+  line-height: 1; letter-spacing: -2px;
+}
+.quiz-header h1 span { color: var(--accent); }
+.quiz-header .subtitle { font-size: clamp(14px, 1.33vw, 19px); color: var(--muted); letter-spacing: 1px; margin-top: 10px; }
+
+/* START SCREEN */
+.start-screen { text-align: center; padding: 0 0 clamp(40px, 4.69vw, 80px); animation: fadeUp 0.8s ease both; }
+.start-screen .description { max-width: clamp(320px, 35.94vw, 560px); margin: 0 auto clamp(28px, 3.13vw, 52px); font-size: clamp(16px, 1.56vw, 22px); line-height: 1.8; color: var(--muted); }
+.features { display: flex; justify-content: center; gap: clamp(20px, 2.81vw, 48px); margin-bottom: clamp(32px, 3.75vw, 60px); flex-wrap: wrap; }
+.feature { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.feature-icon { font-size: clamp(22px, 2.27vw, 34px); }
+.feature-label { font-family: 'Space Mono', monospace; font-size: clamp(11px, 1.09vw, 15px); color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+
+.btn-start, .btn-start-secondary {
+  display: block; width: 100%; max-width: clamp(260px, 25vw, 380px); margin: 0 auto;
+  padding: clamp(13px, 1.25vw, 20px) clamp(32px, 4.06vw, 68px); background: var(--accent); color: white; border: none;
+  border-radius: 3px; font-family: 'Space Mono', monospace;
+  font-size: clamp(14px, 1.33vw, 19px); letter-spacing: 4px; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-start-secondary { margin-top: 12px; background: transparent; color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent); }
+.btn-start:hover { background: color-mix(in srgb, var(--accent) 85%, white); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(var(--accent-rgb),.35); }
+.btn-start-secondary:hover { background: rgba(var(--accent-rgb),.08); transform: translateY(-2px); }
+
+/* TIER SELECTOR */
+.tier-selector { margin: 0 auto clamp(20px, 2.5vw, 42px); max-width: clamp(280px, 28.13vw, 440px); text-align: center; }
+.tier-label { font-family:'Space Mono',monospace; font-size: clamp(10px, 0.94vw, 13px); letter-spacing:3px; color:var(--muted); text-transform:uppercase; margin-bottom:12px; }
+.tier-options { display:flex; gap:8px; }
+.tier-btn {
+  flex:1; padding: clamp(10px, 1.09vw, 18px) 8px; background:var(--surface);
+  border:1px solid var(--border-q); border-radius:3px;
+  cursor:pointer; transition:all 0.2s; color:var(--muted);
+  font-family:'Space Mono',monospace; text-align:center;
+}
+.tier-btn.active { border-color:var(--accent); background:rgba(var(--accent-rgb),0.08); color:var(--accent); }
+.tier-btn:hover:not(.active) { border-color:color-mix(in srgb,var(--accent) 35%,transparent); color:var(--text); }
+.tier-btn-number { font-size: clamp(22px, 2.27vw, 34px); font-weight:700; line-height:1; margin-bottom:5px; display:block; font-family:var(--font-serif); }
+.tier-btn-label { font-size:10px; letter-spacing:2px; text-transform:uppercase; display:block; margin-bottom:4px; }
+.tier-btn-desc { font-size:10px; color:var(--muted); opacity:0.7; display:block; }
+.tier-btn.active .tier-btn-desc { opacity:1; color:color-mix(in srgb,var(--accent) 70%,var(--muted)); }
+.tier-precision { font-family:'Space Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:2px; margin-top:6px; margin-bottom:14px; opacity:0.65; }
+.tier-precision span { color:var(--accent); font-style:normal; }
+
+/* SEPARADOR "ou" */
+.start-divider {
+  display: flex; align-items: center; gap: 14px;
+  max-width: clamp(260px, 25vw, 380px); margin: clamp(20px, 2.19vw, 36px) auto clamp(14px, 1.56vw, 26px);
+}
+.start-divider-line {
+  flex: 1; height: 1px;
+  background: var(--border-q);
+}
+.start-divider-text {
+  font-family: 'Space Mono', monospace;
+  font-size: clamp(11px, 1.09vw, 15px); letter-spacing: 4px;
+  color: var(--muted); text-transform: lowercase;
+  flex-shrink: 0;
+}
+
+/* QUIZ SCREEN */
+.quiz-screen { display: none; }
+.quiz-screen.active { display: block; }
+
+.progress-wrap { margin-bottom: clamp(32px, 3.75vw, 60px); }
+.progress-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.progress-label { font-family: 'Space Mono', monospace; font-size: clamp(11px, 1.09vw, 15px); color: var(--muted); letter-spacing: 2px; }
+.progress-section { font-family: 'Space Mono', monospace; font-size: clamp(11px, 1.09vw, 15px); color: var(--accent); letter-spacing: 1px; }
+.progress-bar { height: 2px; background: var(--border-q); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+
+.question-wrap { animation: slideIn 0.35s cubic-bezier(.4,0,.2,1) both; }
+.question-section-label { font-family:'Space Mono',monospace; font-size: clamp(11px, 1.09vw, 15px); background:var(--accent); color:white; display:inline-block; padding:3px 8px; border-radius:2px; letter-spacing:1px; margin-bottom:20px; }
+.question-number { font-family:'Space Mono',monospace; font-size: clamp(11px, 1.09vw, 15px); color:var(--muted); letter-spacing:2px; margin-bottom:10px; }
+.question-text { font-size: clamp(22px, 2.27vw, 32px); line-height:1.4; color:var(--text); margin-bottom: clamp(22px, 2.5vw, 42px); font-weight:300; font-family:var(--font-serif); }
+
+.options { display: flex; flex-direction: column; gap: clamp(6px, 0.63vw, 10px); margin-bottom: 12px; }
+.options.grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(6px, 0.63vw, 10px); }
+
+.option {
+  display: flex; align-items: center; gap: 12px;
+  padding: clamp(10px, 1.02vw, 16px) clamp(12px, 1.25vw, 20px); background: var(--surface);
+  border: 1px solid var(--border-q); border-radius: 3px;
+  cursor: pointer; transition: all 0.15s ease;
+  text-align: left; width: 100%; color: var(--text);
+  font-family: var(--font-body); font-size: clamp(15px, 1.41vw, 20px); line-height: 1.4;
+}
+.option:hover { border-color: var(--accent); background: rgba(var(--accent-rgb),.06); transform: translateX(3px); }
+.option.selected { border-color: var(--accent); background: rgba(var(--accent-rgb),.12); }
+.option.irrelevant { opacity: 0.45; font-style: italic; font-size: clamp(13px, 1.33vw, 19px); }
+.option.irrelevant:hover { opacity: 0.7; }
+.option.irrelevant.selected { opacity: 0.65; border-color: var(--muted); background: rgba(107,107,128,0.1); }
+.option-dot { width:8px; height:8px; border-radius:50%; border:1px solid var(--muted); flex-shrink:0; transition:all 0.15s; }
+.option.selected .option-dot { background:var(--accent); border-color:var(--accent); box-shadow:0 0 8px rgba(var(--accent-rgb),.5); }
+
+/* SLIDER */
+.slider-wrap { margin-bottom:12px; padding: clamp(14px, 1.56vw, 26px) 4px 8px; }
+.slider-poles { display:flex; justify-content:space-between; margin-bottom:14px; gap:8px; }
+.slider-pole { font-family:'Space Mono',monospace; font-size: clamp(11px, 1.09vw, 15px); letter-spacing:1px; color:var(--muted); line-height:1.4; max-width:44%; }
+.slider-pole.right { text-align:right; }
+.slider-pole.active-pole { color:var(--accent); }
+.slider-track { position:relative; height:2px; background:var(--border-q); border-radius:2px; margin:8px 0 20px; }
+.slider-fill { position:absolute; left:0; top:0; height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2)); border-radius:2px; transition:width 0.1s; pointer-events:none; }
+.slider-input { position:absolute; top:50%; left:0; transform:translateY(-50%); width:100%; height:24px; opacity:0; cursor:pointer; margin:0; -webkit-appearance:none; }
+.slider-thumb { position:absolute; top:50%; transform:translate(-50%,-50%); width:14px; height:14px; border-radius:50%; background:var(--accent); border:2px solid var(--bg); box-shadow:0 0 10px rgba(var(--accent-rgb),.5); pointer-events:none; transition:left 0.1s; }
+.slider-steps { display:flex; justify-content:space-between; padding:0 1px; }
+.slider-step { font-family:'Space Mono',monospace; font-size: clamp(10px, 0.94vw, 13px); color:var(--border-q); cursor:pointer; transition:color 0.15s; padding:4px 2px; }
+.slider-step.active { color:var(--accent); }
+.slider-value-label { text-align:center; font-family:'Space Mono',monospace; font-size: clamp(12px, 1.17vw, 17px); color:var(--accent); letter-spacing:1px; min-height:18px; margin-top:4px; }
+
+/* OPEN TEXT */
+.open-text-wrap { border:1px solid var(--border-q); border-radius:3px; background:var(--surface); transition:border-color 0.15s; overflow:hidden; margin-bottom:12px; }
+.open-text-wrap.active { border-color:var(--accent); background:rgba(var(--accent-rgb),.05); }
+.open-text-label { display:flex; align-items:center; gap:12px; padding: clamp(10px, 1.02vw, 16px) clamp(12px, 1.25vw, 20px) clamp(8px, 0.78vw, 12px); cursor:pointer; font-size: clamp(15px, 1.41vw, 20px); color:var(--muted); font-style:italic; transition:color 0.15s; user-select:none; }
+.open-text-wrap.active .open-text-label { color:var(--text); }
+.open-text-label .option-dot { width:8px; height:8px; border-radius:50%; border:1px solid var(--muted); flex-shrink:0; transition:all 0.15s; }
+.open-text-wrap.active .option-dot { background:var(--accent); border-color:var(--accent); box-shadow:0 0 8px rgba(var(--accent-rgb),.5); }
+.open-text-input { display:none; width:100%; background:transparent; border:none; border-top:1px solid var(--border-q); color:var(--text); font-family:var(--font-body); font-size: clamp(15px, 1.41vw, 20px); padding: clamp(10px, 0.94vw, 14px) clamp(12px, 1.25vw, 20px); outline:none; resize:none; line-height:1.5; }
+.open-text-wrap.active .open-text-input { display:block; }
+.open-text-input::placeholder { color:var(--muted); }
+
+/* NAV */
+.question-nav { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top: clamp(20px, 2.19vw, 36px); }
+.btn-nav { padding: clamp(10px, 1.02vw, 16px) clamp(18px, 2.19vw, 36px); border-radius:3px; font-family:'Space Mono',monospace; font-size: clamp(13px, 1.25vw, 18px); letter-spacing:2px; cursor:pointer; transition:all 0.2s; border:1px solid var(--border-q); background:transparent; color:var(--muted); white-space:nowrap; }
+.btn-nav:hover:not(:disabled) { border-color:var(--muted); color:var(--text); }
+.btn-nav.primary { background:var(--accent); color:white; border-color:var(--accent); }
+.btn-nav.primary:hover:not(:disabled) { background:color-mix(in srgb,var(--accent) 85%,white); border-color:color-mix(in srgb,var(--accent) 85%,white); transform:translateY(-1px); box-shadow:0 8px 24px rgba(var(--accent-rgb),.3); }
+.btn-nav:disabled { opacity:0.3; cursor:not-allowed; }
+.error-inline { font-family:'Space Mono',monospace; font-size: clamp(11px, 1.09vw, 15px); color:var(--accent); letter-spacing:1px; opacity:0; transition:opacity 0.2s; text-align:center; flex:1; }
+.error-inline.active { opacity:1; }
+
+/* LOADING */
+.loading-screen { display:none; text-align:center; padding: clamp(56px, 6.25vw, 100px) clamp(16px, 1.88vw, 32px); }
+.loading-screen.active { display:block; animation:fadeUp 0.4s ease both; }
+.loading-kanji { font-family:var(--font-serif); font-size: clamp(64px, 7.42vw, 116px); color:var(--accent); display:block; margin-bottom: clamp(22px, 2.5vw, 42px); animation:spinKanji 3s ease-in-out infinite; }
+.loading-messages { font-family:'Space Mono',monospace; font-size: clamp(12px, 1.17vw, 17px); color:var(--muted); letter-spacing:2px; min-height:20px; }
+.loading-messages span { display:none; animation:fadeUp 0.5s ease both; }
+.loading-messages span.active { display:inline; }
+
+/* RESULTS */
+.results-screen { display:none; }
+.results-screen.active { display:block; animation:fadeUp 0.6s ease both; }
+.results-eyebrow { font-family:'Space Mono',monospace; font-size: clamp(11px, 1.09vw, 16px); color:var(--accent); letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; }
+.results-tagline { font-family:var(--font-serif); font-size:clamp(20px,3.13vw,38px); font-weight:700; line-height:1.3; margin-bottom:8px; }
+.results-subtitle { font-size: clamp(14px, 1.33vw, 19px); color:var(--muted); margin-bottom: clamp(28px, 3.13vw, 52px); line-height:1.6; }
+
+.result-card {
+  background:var(--card); border:1px solid var(--border-q);
+  border-radius:4px; padding: clamp(18px, 1.88vw, 32px); margin-bottom: clamp(10px, 1.09vw, 18px);
+  display:flex; gap: clamp(14px, 1.56vw, 28px); animation:fadeUp 0.5s ease both;
+  transition:border-color 0.2s, transform 0.2s;
+}
+.result-card:hover { border-color:rgba(var(--accent-rgb),.35); transform:translateY(-2px); }
+.result-rank { font-family:var(--font-serif); font-size: clamp(36px, 3.98vw, 62px); font-weight:700; color:rgba(var(--accent-rgb),.18); line-height:1; flex-shrink:0; width:44px; text-align:center; padding-top:2px; }
+.result-info { flex:1; min-width:0; }
+.result-title { font-size: clamp(18px, 1.8vw, 26px); font-weight:700; margin-bottom:2px; line-height:1.2; }
+.result-title-orig { font-family:var(--font-serif); font-size: clamp(13px, 1.25vw, 18px); color:var(--muted); margin-bottom:10px; }
+.result-tags { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+.result-tag { font-family:'Space Mono',monospace; font-size: clamp(11px, 1.09vw, 15px); padding:2px 7px; border:1px solid var(--border-q); border-radius:2px; color:var(--muted); letter-spacing:0.5px; }
+.result-tag.hl { border-color:var(--accent); color:var(--accent); }
+.result-score { font-family:'Space Mono',monospace; font-size: clamp(12px, 1.17vw, 17px); color:var(--accent2); margin-bottom:10px; }
+.result-reason { font-size: clamp(14px, 1.33vw, 19px); line-height:1.65; color:var(--muted); padding-top:10px; border-top:1px solid var(--border-q); }
+.result-card-footer { display:flex; align-items:center; justify-content:space-between; margin-top:12px; gap:10px; flex-wrap:wrap; }
+.result-link { display:inline-flex; align-items:center; gap:6px; font-family:'Space Mono',monospace; font-size: clamp(11px, 1.09vw, 15px); color:var(--accent2); text-decoration:none; letter-spacing:1px; transition:color 0.15s; }
+.result-link:hover { color:var(--accent); }
+.btn-seen { font-family:'Space Mono',monospace; font-size: clamp(11px, 1.09vw, 15px); color:var(--muted); background:transparent; border:1px solid var(--border-q); border-radius:2px; padding:4px 10px; cursor:pointer; letter-spacing:1px; transition:all 0.15s; }
+.btn-seen:hover { border-color:var(--accent); color:var(--accent); }
+.result-card.seen { opacity:0.4; }
+.result-card.seen .btn-seen { background:var(--accent); color:white; border-color:var(--accent); opacity:1; }
+
+/* REPLACE BAR */
+.replace-bar { display:none; align-items:center; justify-content:space-between; gap:12px; margin-top: clamp(16px, 1.88vw, 32px); padding: clamp(11px, 1.09vw, 18px) clamp(14px, 1.41vw, 24px); background:var(--surface); border:1px solid var(--border-q); border-radius:3px; animation:fadeUp 0.3s ease both; flex-wrap:wrap; }
+.replace-bar.active { display:flex; }
+.replace-bar-text { font-family:'Space Mono',monospace; font-size: clamp(12px, 1.17vw, 17px); color:var(--muted); letter-spacing:1px; line-height:1.6; }
+.replace-bar-text strong { color:var(--accent); font-weight:normal; }
+.btn-replace { display:inline-flex; align-items:center; gap:8px; font-family:'Space Mono',monospace; font-size: clamp(12px, 1.17vw, 17px); background:var(--accent); color:white; border:none; padding: clamp(7px, 0.7vw, 12px) clamp(14px, 1.41vw, 22px); border-radius:3px; cursor:pointer; letter-spacing:2px; transition:all 0.2s; white-space:nowrap; }
+.btn-replace:hover:not(:disabled) { background:color-mix(in srgb,var(--accent) 85%,white); transform:translateY(-1px); }
+.btn-replace:disabled { opacity:0.45; cursor:not-allowed; }
+
+.btn-restart { width:100%; padding: clamp(12px, 1.17vw, 20px); background:transparent; color:var(--muted); border:1px solid var(--border-q); border-radius:3px; font-family:'Space Mono',monospace; font-size: clamp(13px, 1.25vw, 18px); letter-spacing:3px; text-transform:uppercase; cursor:pointer; transition:all 0.2s; margin-top: clamp(16px, 1.88vw, 32px); }
+.btn-restart:hover { border-color:var(--muted); color:var(--text); }
+
+/* SIMILAR SCREEN */
+.similar-screen { display:none; }
+.similar-screen.active { display:block; animation:fadeUp 0.4s ease both; }
+.anime-input-wrap { margin-bottom: clamp(22px, 2.5vw, 42px); }
+.anime-input-label { font-family:'Space Mono',monospace; font-size: clamp(11px, 1.09vw, 15px); color:var(--accent); letter-spacing:3px; margin-bottom:10px; display:block; }
+.anime-input { width:100%; background:var(--card); border:1px solid var(--border-q); border-radius:3px; color:var(--text); font-family:var(--font-serif); font-size: clamp(18px, 1.88vw, 28px); padding: clamp(12px, 1.25vw, 20px) clamp(14px, 1.41vw, 22px); outline:none; transition:border-color 0.15s; }
+.anime-input:focus { border-color:var(--accent); }
+.anime-input::placeholder { color:var(--muted); font-size: clamp(16px, 1.56vw, 22px); }
+
+/* CHAT */
+.chat-wrap { display:none; flex-direction:column; gap:0; margin-bottom: clamp(16px, 1.88vw, 32px); }
+.chat-wrap.active { display:flex; }
+.chat-bubble { max-width:85%; padding: clamp(10px, 1.09vw, 18px) clamp(14px, 1.41vw, 24px); border-radius:3px; font-size: clamp(15px, 1.41vw, 20px); line-height:1.6; margin-bottom: clamp(8px, 0.94vw, 16px); animation:fadeUp 0.35s ease both; }
+.chat-bubble.ai { background:var(--card); border:1px solid var(--border-q); border-left:3px solid var(--accent); align-self:flex-start; }
+.chat-bubble.ai .bubble-label { font-family:'Space Mono',monospace; font-size: clamp(10px, 0.94vw, 13px); color:var(--accent); letter-spacing:2px; margin-bottom:6px; display:block; }
+.chat-bubble.user { background:rgba(var(--accent-rgb),.08); border:1px solid rgba(var(--accent-rgb),.2); align-self:flex-end; color:var(--text); }
+.chat-typing { display:none; align-items:center; gap:6px; padding:10px 0; }
+.chat-typing.active { display:flex; }
+.chat-typing span { width:6px; height:6px; border-radius:50%; background:var(--accent); animation:typingDot 1.2s infinite; opacity:0.4; }
+.chat-typing span:nth-child(2) { animation-delay:0.2s; }
+.chat-typing span:nth-child(3) { animation-delay:0.4s; }
+.chat-input-row { display:none; gap: clamp(8px, 0.78vw, 14px); align-items:flex-end; margin-top:4px; }
+.chat-input-row.active { display:flex; }
+.chat-textarea { flex:1; background:var(--card); border:1px solid var(--border-q); border-radius:3px; color:var(--text); font-family:var(--font-body); font-size: clamp(15px, 1.41vw, 20px); padding: clamp(10px, 0.94vw, 14px) clamp(10px, 1.09vw, 18px); outline:none; resize:none; line-height:1.5; transition:border-color 0.15s; min-height:48px; max-height:120px; }
+.chat-textarea:focus { border-color:var(--accent); }
+.chat-textarea::placeholder { color:var(--muted); }
+.btn-send { padding: clamp(10px, 0.94vw, 14px) clamp(14px, 1.41vw, 22px); background:var(--accent); color:white; border:none; border-radius:3px; font-family:'Space Mono',monospace; font-size: clamp(12px, 1.17vw, 17px); letter-spacing:1px; cursor:pointer; transition:all 0.15s; flex-shrink:0; height:48px; }
+.btn-send:hover:not(:disabled) { background:color-mix(in srgb,var(--accent) 85%,white); }
+.btn-send:disabled { opacity:0.35; cursor:not-allowed; }
+.btn-similar-back { background:transparent; border:none; color:var(--muted); font-family:'Space Mono',monospace; font-size: clamp(12px, 1.17vw, 17px); letter-spacing:2px; cursor:pointer; padding:0 0 clamp(20px, 2.5vw, 40px); display:block; transition:color 0.15s; }
+.btn-similar-back:hover { color:var(--text); }
+
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════ */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+@keyframes slideIn {
+  from { opacity:0; transform:translateX(28px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+@keyframes spinKanji {
+  0%,100% { transform:rotate(-5deg) scale(1); opacity:1; }
+  50%     { transform:rotate(5deg) scale(1.05); opacity:0.6; }
+}
+@keyframes typingDot {
+  0%,100% { opacity:0.2; transform:translateY(0); }
+  50%     { opacity:1; transform:translateY(-3px); }
+}
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 720px) {
+  .media-grid { grid-template-columns: repeat(2,1fr); }
+  .hub-side-text { display:none; }
+}
+@media (max-width: 420px) {
+  .media-grid { grid-template-columns: 1fr 1fr; gap:10px; }
+  .media-card { padding:24px 14px 20px; }
+  .media-kanji { font-size:40px; }
+}
+@media (max-width: 500px) {
+  .options.grid { grid-template-columns: 1fr; }
+  .result-card { flex-direction:column; gap:8px; }
+  .result-rank { width:auto; text-align:left; font-size:34px; }
+  .question-text { font-size:20px; }
+  .btn-nav { padding:11px 18px; font-size:14px; }
+}
+
+/* ── 2K (≥1600px): ajustes finos de fontes e espaçamentos ── */
+@media (min-width: 1600px) {
+  :root {
+    --container-hub:  clamp(900px, 62.5vw, 1400px);
+    --container-quiz: clamp(720px, 50vw,   1000px);
+  }
+  .hub-eyebrow        { font-size: 15px; }
+  .hub-desc           { font-size: 19px; }
+  .hub-footer-text    { font-size: 14px; }
+  .quiz-header .eyebrow { font-size: 16px; }
+  .quiz-header .subtitle { font-size: 18px; }
+  .question-text      { font-size: 30px; }
+  .option             { font-size: 19px; }
+  .open-text-label    { font-size: 19px; }
+  .open-text-input    { font-size: 19px; }
+  .results-subtitle   { font-size: 18px; }
+  .result-reason      { font-size: 18px; }
+  .chat-bubble        { font-size: 19px; }
+  .chat-textarea      { font-size: 19px; }
+  .progress-label,
+  .progress-section   { font-size: 14px; }
+  .loading-messages   { font-size: 16px; }
+  .replace-bar-text,
+  .btn-replace        { font-size: 15px; }
+}
+
+/* ── 4K (≥2400px): corpo base +1px, containers no teto máximo ── */
+@media (min-width: 2400px) {
+  :root {
+    --container-hub:  1400px;
+    --container-quiz: 1000px;
+  }
+  html, body { font-size: 17px; }
+  .question-text  { font-size: 32px; }
+  .hub-desc       { font-size: 20px; }
+  .result-title   { font-size: 26px; }
+  .result-reason  { font-size: 19px; }
+  .chat-bubble    { font-size: 20px; }
+  .option         { font-size: 20px; }
+  .loading-kanji  { font-size: 116px; }
+}
+
+/* ═══════════════════════════════════════════
+   LO-FI PLAYER
+═══════════════════════════════════════════ */
+#lofi-player {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--card-hub); border: 1px solid var(--border);
+  border-radius: 3px; padding: 0 12px; height: 38px;
+  font-family: 'Space Mono', monospace;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  user-select: none;
+}
+#lofi-player:hover { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+#lofi-player.playing {
+  border-color: rgba(var(--accent-rgb), 0.45);
+  box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.08);
+}
+.lofi-kanji {
+  font-family: 'Noto Serif JP', serif; font-size:18px;
+  color: var(--accent); line-height: 1;
+}
+#lofi-player.playing .lofi-kanji { animation: lofiPulse 2.4s ease-in-out infinite; }
+.lofi-play-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size:14px; padding: 0;
+  transition: color 0.15s; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  border: 1px solid var(--border-q);
+  font-family: monospace; flex-shrink: 0;
+}
+.lofi-play-btn:hover { color: var(--accent); border-color: var(--accent); }
+#lofi-player.playing .lofi-play-btn { color: var(--accent); border-color: rgba(var(--accent-rgb),0.4); }
+.lofi-divider { width: 1px; height: 16px; background: var(--border-q); flex-shrink: 0; }
+.lofi-vol-wrap { display:flex; align-items:center; gap:5px; }
+.lofi-vol-icon { font-size:10px; color:var(--muted); }
+.lofi-vol {
+  -webkit-appearance:none; appearance:none;
+  width:50px; height:2px;
+  background: var(--border-q); border-radius:2px;
+  outline:none; cursor:pointer;
+}
+.lofi-vol::-webkit-slider-thumb {
+  -webkit-appearance:none; width:9px; height:9px;
+  border-radius:50%; background:var(--accent); cursor:pointer;
+  box-shadow: 0 0 5px rgba(var(--accent-rgb),0.4);
+}
+.lofi-vol::-moz-range-thumb {
+  width:9px; height:9px; border-radius:50%;
+  background:var(--accent); cursor:pointer; border:none;
+}
+@keyframes lofiPulse {
+  0%,100% { opacity:1; }
+  50%      { opacity:0.45; }
+}
+@media (max-width: 540px) {
+  .lofi-vol-wrap, .lofi-divider { display: none; }
+  #lofi-player { padding: 0 10px; gap: 7px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP CONTROLS: lo-fi player + theme toggle -->
+<div id="top-controls">
+  <div id="lofi-player" title="Lo-fi Radio — clique ▶ para ouvir">
+    <span class="lofi-kanji">音</span>
+    <button class="lofi-play-btn" id="lofi-play-btn" onclick="toggleLofi()" title="Play / Pause">▶</button>
+    <div class="lofi-divider"></div>
+    <div class="lofi-vol-wrap">
+      <span class="lofi-vol-icon">♪</span>
+      <input class="lofi-vol" type="range" id="lofi-vol" min="0" max="100" value="50"
+        oninput="setLofiVolume(this.value)" title="Volume">
+    </div>
+  </div>
+  <button id="themeToggle" title="Alternar tema" onclick="toggleTheme()">☀</button>
+</div>
+
+<!-- ═══ HUB PAGE ═══ -->
+<div id="page-hub">
+  <div class="hub-glow hub-glow-1"></div>
+  <div class="hub-glow hub-glow-2"></div>
+  <div class="hub-glow hub-glow-3" id="hubGlow3"></div>
+
+  <span class="hub-side-text left">DESCOBERTA // MÍDIA // ORÁCULO</span>
+  <span class="hub-side-text right">何を観る？何を見る？</span>
+
+  <div class="hub-container">
+    <div class="hub-hero">
+      <div class="hub-eyebrow">// oráculo de mídia</div>
+      <div class="hub-title">何？</div>
+      <div class="hub-title-sub">nani — o que assistir?</div>
+      <div class="hub-rule"></div>
+      <p class="hub-desc">Escolha o universo. Nós encontramos a história certa para você — agora, neste momento.</p>
+    </div>
+
+    <div class="media-grid">
+      <a class="media-card" data-media="anime" href="#anime">
+        <span class="media-kanji">観</span>
+        <div class="media-name">Anime</div>
+        <div class="media-jp">アニメ</div>
+        <span class="media-pill">EXPLORAR →</span>
+      </a>
+      <a class="media-card" data-media="filme" href="#filmes">
+        <span class="media-kanji">映</span>
+        <div class="media-name">Filmes</div>
+        <div class="media-jp">映画</div>
+        <span class="media-pill">EXPLORAR →</span>
+      </a>
+      <a class="media-card" data-media="serie" href="#series">
+        <span class="media-kanji">劇</span>
+        <div class="media-name">Séries</div>
+        <div class="media-jp">ドラマシリーズ</div>
+        <span class="media-pill">EXPLORAR →</span>
+      </a>
+      <a class="media-card" data-media="dorama" href="#doramas">
+        <span class="media-kanji">韓</span>
+        <div class="media-name">Doramas</div>
+        <div class="media-jp">韓国ドラマ</div>
+        <span class="media-pill">EXPLORAR →</span>
+      </a>
+    </div>
+
+    <div class="hub-footer">
+      <div class="hub-footer-text">YOMI AGUARDA // ESCOLHA SEU UNIVERSO // TODOS OS PORTAIS ABERTOS</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ QUIZ PAGE (shared template) ═══ -->
+<div id="page-quiz">
+  <a href="#hub" class="back-to-hub" id="backBtn">← NANI</a>
+  <div class="jp-decoration top-right"    id="decorTop"></div>
+  <div class="jp-decoration bottom-left"  id="decorBottom"></div>
+
+  <div class="quiz-container">
+    <div class="quiz-header">
+      <div class="eyebrow" id="quizEyebrow"></div>
+      <h1 id="quizTitle"></h1>
+      <div class="subtitle" id="quizSubtitle"></div>
+    </div>
+
+    <!-- START -->
+    <div class="start-screen" id="startScreen">
+      <p class="description" id="startDesc"></p>
+      <div class="features" id="startFeatures"></div>
+
+      <!-- QUIZ BLOCK: tier + botão -->
+      <div class="tier-selector" id="tierSelector">
+        <div class="tier-label">// quantidade de perguntas</div>
+        <div class="tier-precision">menos perguntas = <span>menor precisão</span></div>
+        <div class="tier-options">
+          <button class="tier-btn" data-tier="8" onclick="selectTier(8)">
+            <span class="tier-btn-number">8</span>
+            <span class="tier-btn-label">RÁPIDO</span>
+            <span class="tier-btn-desc">~3 min</span>
+          </button>
+          <button class="tier-btn" data-tier="16" onclick="selectTier(16)">
+            <span class="tier-btn-number">16</span>
+            <span class="tier-btn-label">PADRÃO</span>
+            <span class="tier-btn-desc">~6 min</span>
+          </button>
+          <button class="tier-btn active" data-tier="26" onclick="selectTier(26)">
+            <span class="tier-btn-number">26</span>
+            <span class="tier-btn-label">COMPLETO</span>
+            <span class="tier-btn-desc">~10 min</span>
+          </button>
+        </div>
+      </div>
+
+      <button class="btn-start" onclick="startQuiz()" id="btnStartQuiz"></button>
+
+      <!-- SEPARADOR -->
+      <div class="start-divider">
+        <span class="start-divider-line"></span>
+        <span class="start-divider-text">ou</span>
+        <span class="start-divider-line"></span>
+      </div>
+
+      <button class="btn-start-secondary" onclick="startSimilar()" id="btnStartSimilar"></button>
+    </div>
+
+    <!-- SIMILAR -->
+    <div class="similar-screen" id="similarScreen">
+      <button class="btn-similar-back" onclick="backToStart()">← VOLTAR</button>
+      <div class="anime-input-wrap" id="animeInputWrap">
+        <span class="anime-input-label" id="similarLabel"></span>
+        <input class="anime-input" id="animeNameInput" type="text"
+          onkeydown="if(event.key==='Enter') confirmAnime()">
+        <div style="margin-top:12px">
+          <button class="btn-nav primary" onclick="confirmAnime()">CONTINUAR →</button>
+        </div>
+      </div>
+      <div class="chat-wrap" id="chatWrap">
+        <div id="chatMessages"></div>
+        <div class="chat-typing" id="chatTyping"><span></span><span></span><span></span></div>
+        <div class="chat-input-row" id="chatInputRow">
+          <textarea class="chat-textarea" id="chatInput" rows="2"
+            placeholder="Escreva sua resposta..."
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage()}"
+            oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+          <button class="btn-send" id="btnSend" onclick="sendChatMessage()">ENVIAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="quiz-screen" id="quizScreen">
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span class="progress-label"  id="progressLabel">PERGUNTA 1 / 26</span>
+          <span class="progress-section" id="progressSection">ESCOPO</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+      </div>
+      <div id="questionContainer"></div>
+    </div>
+
+    <!-- LOADING -->
+    <div class="loading-screen" id="loadingScreen">
+      <span class="loading-kanji" id="loadingKanji">探</span>
+      <div class="loading-messages" id="loadingMessages"></div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="results-screen" id="resultsScreen">
+      <div class="results-eyebrow">// seu perfil foi analisado</div>
+      <div class="results-tagline" id="resultsTagline"></div>
+      <div class="results-subtitle" id="resultsSubtitle"></div>
+      <div id="resultsContainer"></div>
+      <div class="replace-bar" id="replaceBar">
+        <div class="replace-bar-text">
+          <strong id="replaceCount">0</strong> <span id="replaceLabel"></span> —<br>quer trocar por novas sugestões?
+        </div>
+        <button class="btn-replace" id="btnReplace" onclick="replaceSeenItems()">↺ TROCAR VISTOS</button>
+      </div>
+      <button class="btn-restart" onclick="restartQuiz()">↩ REFAZER QUESTIONÁRIO</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════════════════════ */
+const PROXY_URL = 'https://nani-proxy.sacertracinho.workers.dev';
+
+const PRECISION_NOTE = `
+REGRAS ABSOLUTAS — VIOLAÇÃO ZERO TOLERADA:
+
+1. TÍTULOS REAIS APENAS: Recomende SOMENTE obras que você tem certeza absoluta que existem. Verifique mentalmente: (1) Este título existe exatamente assim? (2) O ano está correto? (3) Os gêneros batem? NUNCA invente, NUNCA combine dois títulos em um só.
+
+2. TÍTULO PRINCIPAL (campo "titulo") — HIERARQUIA OBRIGATÓRIA:
+   a) Se a obra tem título OFICIAL lançado no Brasil em português → use esse título. Exemplos confirmados: "Parasita", "O Poderoso Chefão", "A Origem", "Clube da Luta".
+   b) Se NÃO há título oficial em português → use o título original ou em inglês como é mundialmente conhecido. Exemplos: "Oppenheimer", "Dune", "The Bear", "Shogun".
+   c) PROIBIDO: inventar tradução literal. "The Substance" NÃO é "A Substância". "Poor Things" NÃO é "Criaturas Pobres". "All of Us Are Dead" NÃO é "Todos Nós Estamos Mortos". Se não souber o título BR oficial, use o título original — NUNCA traduza por conta própria.
+
+3. CAMPO "titulo_original": preencha APENAS se o título principal (campo "titulo") for diferente do título no idioma original da obra. Se "titulo" já é o título original, deixe "titulo_original" igual ao "titulo" ou omita.`;
+
+/* ═══════════════════════════════════════════════════════════════
+   QUESTION TIERS — índices curados por número de perguntas
+   (baseados em importância: escopo, ritmo, emoção, tema, filtro)
+═══════════════════════════════════════════════════════════════ */
+const QUESTION_TIERS = {
+  // 8 — RÁPIDO: 1 por seção obrigatória + as mais discriminantes
+  8:  [0, 5, 7, 11, 12, 14, 18, 25],
+  // 16 — PADRÃO: cobertura equilibrada de todas as seções
+  16: [0, 1, 2, 4, 5, 6, 7, 10, 11, 12, 14, 16, 18, 20, 24, 25],
+  // 26 — COMPLETO: todas as perguntas (comportamento original)
+  26: null
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE DEFINITIONS
+═══════════════════════════════════════════════════════════════ */
+
+const MODULES = {};
+
+/* ─────────────────────── ANIME ─────────────────────── */
+MODULES.anime = {
+  accent:      '#e84545',
+  accent2:     '#f5a623',
+  accentRgb:   '232,69,69',
+  fontBody:    "'Zen Kaku Gothic New', sans-serif",
+  fontSerif:   "'Noto Serif JP', serif",
+  eyebrow:     '// descoberta de anime',
+  titleHtml:   '何を<span>観る</span>？',
+  subtitle:    'nani wo miru — o que assistir?',
+  decorTop:    '観',
+  decorBottom: '選',
+  loadingKanji:  '探',
+  loadingKanjis: ['探','見','選','想','夢','観'],
+  loadingMsgs: ['ANALISANDO SEU PERFIL','CONSULTANDO OS DEUSES DO ANIME','VERIFICANDO SE VOCÊ AGUENTA TRAGÉDIAS','PESQUISANDO NOS ARQUIVOS SAGRADOS','FILTRANDO O QUE NÃO É PORCARIA','QUASE LÁ...'],
+  startDesc: 'Responda um questionário sobre seus gostos, humor e visão de mundo. A IA encontrará os animes que combinam exatamente com você — agora, neste momento.',
+  features: [['🎌','26 perguntas'],['🧠','Psicológico'],['⛩️','Filosófico'],['✨','7 resultados']],
+  btnQuiz:    'COMEÇAR QUESTIONÁRIO',
+  btnSimilar: 'BUSQUE UM ANIME SIMILAR',
+  similarLabel: '// QUAL ANIME VOCÊ AMOU?',
+  similarPlaceholder: 'Ex: Attack on Titan, Fullmetal Alchemist...',
+  resultDefault: 'Seus Animes',
+  replaceLabel1: 'anime marcado como já visto',
+  replaceLabelN: 'animes marcados como já vistos',
+  yomiLabel: '⛩ YOMI — ORÁCULO DOS ANIMES',
+  searchFn: q => `https://myanimelist.net/search/all?q=${q}`,
+  searchLabel: '↗ VER NO MYANIMELIST',
+  secondaryField: 'titulo_jp',
+
+  QUESTIONS: [
+    { section:"ESCOPO", sectionLabel:"01 — ESCOPO", id:"q1", text:"Que tipo de anime você está procurando?", grid:true,
+      options:["Ação / Aventura","Romance / Drama","Terror / Suspense / Thriller","Comédia / Slice of Life","Fantasia / Isekai","Ficção Científica","Esporte / Competição","Tanto faz — me surpreenda"] },
+    { section:"ESCOPO", id:"q2", text:"Qual público-alvo combina mais com você agora?",
+      options:["Shonen — aventura, amizade, superação","Shojo — emoções, relacionamentos, crescimento","Seinen — adulto, complexo, denso","Josei — romance maduro, realismo emocional","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q3", text:"Quantos episódios você topa agora?",
+      options:["Curtíssimo — filme ou OVA (1-3h total)","Curto — 1 a 13 ep","Médio — 24 a 50 ep","Longo — 100+ ep, quero maratonar","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q4", text:"Prefere algo já encerrado ou pode estar em andamento?",
+      options:["Precisa estar completo — odeio esperar","Pode estar em andamento","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q5", text:"Qual era de produção te interessa?",
+      options:["Clássicos (antes de 2000)","Anos 2000–2010","2010–2020","Bem recente (2020+)","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", sectionLabel:"02 — NARRATIVA", id:"q6", text:"Qual ritmo de história combina com você agora?", type:"slider",
+      leftLabel:"FRENÉTICO\nnão para um segundo", rightLabel:"IMERSIVO\nlento e contemplativo",
+      steps:["Frenético","Intenso","Equilibrado","Contemplativo","Imersivo"],
+      stepValues:["frenético — não para um segundo","intenso — dinâmico com pausas","equilibrado — alterna bem","contemplativo — respira bastante","imersivo — quase literário, muito lento"] },
+    { section:"NARRATIVA", id:"q7", text:"Que nível de complexidade narrativa você quer?", type:"slider",
+      leftLabel:"SIMPLES\nsó curtir, sem esforço", rightLabel:"LABIRÍNTICA\npede teorias e reanálise",
+      steps:["Simples","Direta","Média","Densa","Labiríntica"],
+      stepValues:["simples e direta — só curtir","direta com algumas reviravoltas","moderadamente complexa — presta atenção mas não exige","densa e elaborada","labiríntica — pede teorias e reanálise"] },
+    { section:"NARRATIVA", id:"q8", text:"Qual elemento narrativo mais te prende numa história?",
+      options:["Batalhas e confrontos épicos","Mistério e revelações","Desenvolvimento profundo de personagens","Relacionamentos e dinâmicas entre o elenco","Construção de mundo e lore denso","Tanto faz / Irrelevante"],
+      openText:"Outro elemento que não está aqui..." },
+    { section:"NARRATIVA", id:"q9", text:"Você prefere um protagonista central ou um elenco ensemble?",
+      options:["Protagonista forte e central — quero me identificar com um","Ensemble — vários personagens igualmente importantes","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", id:"q10", text:"Prefere histórias lineares ou não-lineares?",
+      options:["Linear — do começo ao fim, sem confusão","Não-linear — flashbacks e saltos temporais","Estrutura fragmentada — quebrada e reconstituída aos poucos","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", id:"q11", text:"Que tipo de final você prefere?",
+      options:["Feliz e satisfatório — preciso de resolução","Agridoce — realista e honesto","Trágico — quanto mais doer, melhor","Aberto e ambíguo — adoro interpretar","Tanto faz / Irrelevante"] },
+    { section:"EMOCIONAL", sectionLabel:"03 — EMOCIONAL", id:"q12", text:"O que você quer sentir ao terminar um episódio?",
+      options:["Energizado — quero mais, agora","Emocionado — até chorar está ótimo","Perturbado e pensativo — algo que fica na cabeça","Aconchegado e satisfeito","Com o coração acelerado — tensão pura","Rindo à toa","Maravilhado — aquela sensação de 'uau'","Nostálgico ou melancólico"],
+      openText:"Outro sentimento que não está aqui..." },
+    { section:"EMOCIONAL", id:"q13", text:"Como você está se sentindo hoje e o que está buscando?",
+      options:["Animado — quero algo que acompanhe a energia","Tranquilo — quero relaxar sem pensar muito","Melancólico — quero sentir ainda mais fundo","Ansioso — preciso me distrair e desligar","Entediado — me surpreenda, choque-me"],
+      openText:"Descreva como está e o que está buscando agora..." },
+    { section:"EMOCIONAL", id:"q14", text:"Que tipo de protagonista te cativa mais?",
+      options:["Herói determinado e apaixonado — inspira","Anti-herói moralmente ambíguo — fascinante","Pessoa comum em situação extraordinária — identificável","Gênio frio e calculista — admirável","Alguém quebrado tentando se reconstruir — tocante","Tanto faz / Irrelevante"],
+      openText:"Outro tipo de protagonista que me atrai..." },
+    { section:"EMOCIONAL", id:"q15", text:"Qual sua tolerância a conteúdo pesado — violência, trauma, morte?", type:"slider",
+      leftLabel:"ZERO\nquero algo totalmente leve", rightLabel:"EXTREMO\ngore, trauma, sem filtro",
+      steps:["Zero","Leve","Médio","Alto","Extremo"],
+      stepValues:["zero — quero algo totalmente leve e seguro","leve — um pouco de tensão, nada gráfico","médio — consigo com moderação","alto — quanto mais intenso melhor","extremo — gore, trauma, nada me abala"] },
+    { section:"EMOCIONAL", id:"q16", text:"Qual o peso do romance na história que você quer?", type:"slider",
+      leftLabel:"CENTRAL\ncoração da narrativa", rightLabel:"NENHUM\nme distrai da história",
+      steps:["Central","Importante","Secundário","Sutil","Nenhum"],
+      stepValues:["central — é o coração da narrativa","importante — presente e relevante","secundário — presente mas não dominante","sutil — insinuado, nunca explícito","nenhum — sem romance, me distrai"] },
+    { section:"ESTÉTICA", sectionLabel:"04 — ESTÉTICA", id:"q17", text:"Qual estética visual te atrai mais?", grid:true,
+      options:["Hiper estilizado e colorido","Sombrio e atmosférico","Realista e detalhado","Minimalista e limpo","Arte única / experimental","Tanto faz / Irrelevante"] },
+    { section:"ESTÉTICA", id:"q18", text:"O que você acha de fanservice?",
+      options:["Prefiro totalmente sem","Tolerável se a história compensar","Não me incomoda","Gosto — faz parte da experiência","Tanto faz / Irrelevante"] },
+    { section:"FILOSÓFICO", sectionLabel:"05 — FILOSÓFICO", id:"q19", text:"Que tema central ressoa com você agora?",
+      options:["Identidade — quem sou e o que me define?","Moralidade — o que separa o certo do errado?","Existência — qual o sentido de estar aqui?","Poder — quem governa e por quê obedecemos?","Sacrifício — o que vale perder pelo que acredita?","Conexão — o que nos une e separa uns dos outros?","Nenhum — só quero entretenimento puro"],
+      openText:"Outro tema que me interessa..." },
+    { section:"FILOSÓFICO", id:"q20", text:"Que tipo de moralidade você prefere na história?",
+      options:["Clara — heróis são heróis, vilões são vilões","Realista — todos têm razões, ninguém é puro","Invertida — o vilão tem razão na maior parte","Inexistente — sem julgamento moral, só eventos","Tanto faz / Irrelevante"] },
+    { section:"FILOSÓFICO", id:"q21", text:"Qual a relação com a realidade que você busca?",
+      options:["Fantasia pura — fuga total, outro mundo completamente","Fantasia com metáforas — fala do mundo real por trás","Semi-realista — quase nosso mundo, com algo a mais","Realismo — espelho da vida cotidiana","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", sectionLabel:"06 — REFINAMENTO", id:"q22", text:"Que tipo de tensão você prefere numa história?",
+      options:["Tensão física — lutas, ação, perigo iminente","Tensão psicológica — mente, manipulação, paranoia","Tensão emocional — relacionamentos, perdas, dilemas","Tensão intelectual — enigmas, estratégia, xadrez mental","Prefiro sem tensão — quero algo tranquilo","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", id:"q23", text:"Como você prefere que os personagens cresçam?",
+      options:["Crescimento claro — evolução visível e satisfatória","Crescimento sutil — muda sem que você perceba na hora","Sem crescimento — personagens estáticos, consistentes","Regressão — personagem piora, desce, se perde","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", id:"q24", text:"Que tipo de humor funciona para você?",
+      options:["Comédia física / slapstick","Humor absurdo e nonsense","Ironia e sarcasmo","Humor negro","Prefiro totalmente sem humor","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", id:"q25", text:"Cite algo que você amou — anime, série, filme, livro. O que te prendeu nele?",
+      openTextOnly:true,
+      openText:"Ex: Amei Attack on Titan pelo mistério crescente e a sensação de que qualquer personagem pode morrer..." },
+    { section:"REFINAMENTO", id:"q26", text:"Por último: o que você definitivamente NÃO quer?", grid:true,
+      options:["Nada muito lento","Nada muito violento","Nada muito infantil","Nada muito complexo","Nada com comédia excessiva","Nada com traições e viradas de aliados","Sem restrições — surpreenda-me"],
+      openText:"Outra restrição importante..." }
+  ],
+
+  buildMainPrompt(summary) {
+    return `Você é um especialista em anime com conhecimento enciclopédico. Analise o perfil abaixo e recomende exatamente 7 animes.
+${PRECISION_NOTE}
+PERFIL:
+${summary}
+INSTRUÇÕES:
+- Analise TODAS as respostas. Ignore "Tanto faz / Irrelevante".
+- Respostas livres [resposta livre] têm PESO EXTRA — são a voz real da pessoa.
+- Inclua variedade de gêneros, eras e estilos quando não houver restrição explícita.
+- NÃO filtre por nota — se o perfil pedir algo trash ou cult, recomende isso com orgulho.
+- Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE. Para animes: use o título oficial BR quando confirmado (ex: "Naruto", "Dragon Ball Z", "Cavaleiros do Zodíaco"), senão use o título em inglês ou japonês romanizado como é conhecido internacionalmente. NUNCA invente tradução.
+- Misture clássicos com lançamentos recentes quando possível.
+- Explique ESPECIFICAMENTE como cada anime se conecta com as respostas — seja apaixonado e preciso.
+- Gere uma tagline poética que capture o perfil da pessoa.
+- Gere uma frase curta descrevendo o espectador.
+
+Responda APENAS em JSON válido sem markdown:
+{
+  "tagline": "frase poética que captura o perfil",
+  "perfil": "frase curta descrevendo o espectador (1-2 linhas)",
+  "animes": [
+    {
+      "titulo": "Título oficial BR em português OU título em inglês/japonês romanizado se não há versão BR",
+      "titulo_jp": "タイトル em japonês se conhecido",
+      "nota": "ex: 8.7/10 (MAL)",
+      "demografia": "ex: Seinen",
+      "generos": ["Ação", "Psicológico"],
+      "episodios": "ex: 24 ep",
+      "ano": "ex: 2013",
+      "razao": "Explicação apaixonada de 2-3 frases conectando diretamente às respostas dadas"
+    }
+  ]
+}`;
+  },
+
+  buildReplacePrompt(summary, allTitles, seenTitles) {
+    return `Você é um especialista em anime. O usuário marcou alguns animes como "já vi".
+${PRECISION_NOTE}
+PERFIL: ${summary}
+JÁ RECOMENDADOS (NÃO repita): ${allTitles.join(', ')}
+JÁ VISTOS (substitua esses ${seenTitles.length}): ${seenTitles.join(', ')}
+Recomende EXATAMENTE ${seenTitles.length} anime(s) novos. Diferentes em estilo dos já vistos, mas dentro do perfil. Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE.
+JSON sem markdown: {"animes":[{"titulo":"Título oficial BR OU inglês/japonês romanizado","titulo_jp":"タイトル em japonês se conhecido","nota":"8.7/10 (MAL)","demografia":"Seinen","generos":["Ação"],"episodios":"24 ep","ano":"2013","razao":"2-3 frases"}]}`;
+  },
+
+  buildSimilarPrompt(name, conversation) {
+    return `Você é um especialista em anime com conhecimento enciclopédico.
+${PRECISION_NOTE}
+O usuário amou "${name}" e quer animes similares.
+Conversa revelando o que ele busca:
+${conversation}
+Recomende exatamente 7 animes. Exclua "${name}". Inclua variedade — não apenas clones diretos. Para cada um, explique especificamente o que compartilha com "${name}" e com as preferências reveladas. Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE.
+JSON sem markdown: {"tagline":"frase poética","perfil":"descrição do espectador","animes":[{"titulo":"Título oficial BR OU inglês/japonês romanizado","titulo_jp":"タイトル em japonês se conhecido","nota":"8.7/10 (MAL)","demografia":"Seinen","generos":["Ação"],"episodios":"24 ep","ano":"2013","razao":"2-3 frases conectando ao anime amado"}]}`;
+  },
+
+  buildChatSystemPrompt(name, maxQ) {
+    return `Você é Yomi, uma entidade ancestral que habita o espaço entre histórias — parte divindade, parte bibliotecária do infinito, guardiã de todos os animes já criados e dos que ainda serão.
+Sua missão agora é descobrir o que prendeu o usuário em "${name}" para guiá-lo às próximas histórias certas.
+Fale com sabedoria e calor — como alguém que conhece profundamente tanto o usuário quanto cada anime existente. Sem ser pomposo, sem ser genérico.
+Faça exatamente ${maxQ} perguntas no total, uma por vez.
+Cubra: (1) o que especificamente mais te prendeu em "${name}", (2) o que quer preservar e o que pode mudar, (3) o que definitivamente não quer num similar.
+Máximo 2 frases por pergunta. Seja direto e envolvente.
+Responda APENAS com o texto da pergunta, sem prefixos nem introduções.`;
+  }
+};
+
+/* ─────────────────────── FILMES ─────────────────────── */
+MODULES.filmes = {
+  accent:      '#f5a623',
+  accent2:     '#e84545',
+  accentRgb:   '245,166,35',
+  fontBody:    "'Lato', sans-serif",
+  fontSerif:   "'Playfair Display', serif",
+  eyebrow:     '// descoberta de filmes',
+  titleHtml:   '映画を<span>観る</span>？',
+  subtitle:    'eiga wo miru — que filme assistir?',
+  decorTop:    '映',
+  decorBottom: '画',
+  loadingKanji:  '映',
+  loadingKanjis: ['映','画','観','想','夢','見'],
+  loadingMsgs: ['ANALISANDO SEU GOSTO CINEMATOGRÁFICO','CONSULTANDO OS ARQUIVOS DE CANNES','PESANDO ROTEIRO CONTRA DIREÇÃO','VERIFICANDO SE VOCÊ AGUENTA FINAIS ABERTOS','SEPARANDO ARTE DE ENTRETENIMENTO','QUASE LÁ...'],
+  startDesc: 'Responda um questionário sobre seus gostos, humor e visão de mundo. A IA encontrará os filmes que combinam exatamente com você — agora, neste momento.',
+  features: [['🎬','26 perguntas'],['🎭','Narrativo'],['🌍','Internacional'],['✨','7 resultados']],
+  btnQuiz:    'COMEÇAR QUESTIONÁRIO',
+  btnSimilar: 'BUSQUE UM FILME SIMILAR',
+  similarLabel: '// QUAL FILME VOCÊ AMOU?',
+  similarPlaceholder: 'Ex: Parasita, Inception, Mulholland Drive...',
+  resultDefault: 'Seus Filmes',
+  replaceLabel1: 'filme marcado como já visto',
+  replaceLabelN: 'filmes marcados como já vistos',
+  yomiLabel: '⛩ YOMI — ORÁCULO DOS FILMES',
+  searchFn: q => `https://www.imdb.com/find/?q=${q}`,
+  searchLabel: '↗ VER NO IMDB',
+  secondaryField: 'titulo_original',
+
+  QUESTIONS: [
+    { section:"ESCOPO", sectionLabel:"01 — ESCOPO", id:"q1", text:"Que tipo de filme você está procurando?", grid:true,
+      options:["Ação / Aventura","Drama / Romance","Terror / Suspense / Thriller","Comédia","Ficção Científica","Fantasia","Documentário","Tanto faz — me surpreenda"] },
+    { section:"ESCOPO", id:"q2", text:"De onde você quer que o filme venha?",
+      options:["Hollywood — grande produção americana","Cinema europeu — francês, italiano, alemão...","Cinema asiático — japonês, coreano, chinês","Cinema latino — brasileiro, argentino, mexicano...","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q3", text:"Qual duração você topa agora?",
+      options:["Curto — até 90 min","Médio — 90 a 130 min","Longo — 2h30 ou mais","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q4", text:"Qual era do cinema te interessa?",
+      options:["Clássico (antes de 1980)","Anos 80–90","Anos 2000–2010","Recente (2010+)","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q5", text:"Você prefere um filme único ou faz parte de uma saga / franquia?",
+      options:["Filme único e independente — história completa em si","Saga ou franquia — gosto de universos expandidos","Sequência de um filme que já amei","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", sectionLabel:"02 — NARRATIVA", id:"q6", text:"Qual ritmo você quer no filme?", type:"slider",
+      leftLabel:"FRENÉTICO\nnão para um segundo", rightLabel:"CONTEMPLATIVO\ncenas longas, silêncios",
+      steps:["Frenético","Intenso","Equilibrado","Pausado","Contemplativo"],
+      stepValues:["frenético — não para um segundo","intenso — dinâmico com pausas","equilibrado — alterna bem","pausado — respira bastante","contemplativo — cenas longas e silêncios"] },
+    { section:"NARRATIVA", id:"q7", text:"Que nível de complexidade narrativa você quer?", type:"slider",
+      leftLabel:"SIMPLES\nsó curtir, sem esforço", rightLabel:"LABIRÍNTICA\npede reanálise e pesquisa",
+      steps:["Simples","Direta","Média","Densa","Labiríntica"],
+      stepValues:["simples e direta — só curtir","direta com algumas reviravoltas","moderadamente complexa","densa e elaborada","labiríntica — pede reanálise e pesquisa"] },
+    { section:"NARRATIVA", id:"q8", text:"O que mais te prende num filme?",
+      options:["Roteiro e reviravoltas","Direção e estética visual","Atuações — personagens que ficam na memória","Trilha sonora e atmosfera","Diálogos afiados e construção de cena","Tanto faz / Irrelevante"],
+      openText:"Outro elemento que não está aqui..." },
+    { section:"NARRATIVA", id:"q9", text:"Como você se relaciona com a autoria do diretor?",
+      options:["Adoro cinema de autor — Kubrick, Lynch, Bergman, Tarkovsky...","Prefiro diretores de entretenimento — Spielberg, Nolan, Fincher...","Não ligo para diretor — o gênero e a história importam mais","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", id:"q10", text:"Prefere narrativa linear ou não-linear?",
+      options:["Linear — começo, meio e fim claro","Não-linear — fragmentado, fora de ordem","Múltiplas perspectivas do mesmo evento","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", id:"q11", text:"Que tipo de final você prefere?",
+      options:["Feliz e satisfatório","Agridoce — realista","Trágico","Aberto e ambíguo — adoro interpretar","Circular — volta ao ponto de partida","Tanto faz / Irrelevante"] },
+    { section:"EMOCIONAL", sectionLabel:"03 — EMOCIONAL", id:"q12", text:"O que você quer sentir ao terminar o filme?",
+      options:["Impactado — algo que muda como você vê o mundo","Emocionado — pode chorar","Entretido — só aproveitei bem o tempo","Perturbado e pensativo","Maravilhado — aquela sensação de 'uau'","Levemente melancólico","Animado e energizado"],
+      openText:"Outro sentimento..." },
+    { section:"EMOCIONAL", id:"q13", text:"Como você está e o que busca agora?",
+      options:["Animado — quero algo que acompanhe a energia","Tranquilo — quero algo leve","Melancólico — quero sentir mais fundo","Ansioso — preciso me distrair","Entediado — me surpreenda"],
+      openText:"Descreva o que está buscando agora..." },
+    { section:"EMOCIONAL", id:"q14", text:"Que tipo de protagonista te cativa?",
+      options:["Herói clássico determinado","Anti-herói moralmente ambíguo","Pessoa comum em situação extraordinária","Personagem em colapso interior — estuda sua própria queda","Protagonista passivo que o mundo acontece nele","Tanto faz / Irrelevante"],
+      openText:"Outro tipo..." },
+    { section:"EMOCIONAL", id:"q15", text:"Qual sua tolerância a conteúdo pesado — violência, trauma?", type:"slider",
+      leftLabel:"ZERO\nquero algo leve e seguro", rightLabel:"EXTREMO\nviolência, trauma, sem filtro",
+      steps:["Zero","Leve","Médio","Alto","Extremo"],
+      stepValues:["zero — quero algo totalmente leve","leve — um pouco de tensão, nada gráfico","médio — consigo com moderação","alto — quanto mais intenso melhor","extremo — violência, trauma, sem filtro"] },
+    { section:"EMOCIONAL", id:"q16", text:"Qual o peso do romance no filme que você quer?", type:"slider",
+      leftLabel:"CENTRAL\ncoração do filme", rightLabel:"NENHUM\nprefiro sem",
+      steps:["Central","Importante","Secundário","Sutil","Nenhum"],
+      stepValues:["central — é o coração do filme","importante — presente e relevante","secundário — presente mas não dominante","sutil — insinuado, nunca explícito","nenhum — prefiro sem romance"] },
+    { section:"ESTÉTICA", sectionLabel:"04 — ESTÉTICA", id:"q17", text:"Que tipo de experiência visual você quer?", grid:true,
+      options:["Fotografia e composição impecáveis","Estética suja, crua e realista","Efeitos visuais e escala épica","Ambiência de época — figurino e cenografia ricos","Minimalista — quase sem adorno","Tanto faz / Irrelevante"] },
+    { section:"ESTÉTICA", id:"q18", text:"Grande estúdio ou cinema independente?",
+      options:["Grande estúdio — produção robusta, escala, distribuição ampla","Indie / arthouse — menor, mais autoral, mais arriscado","Tanto faz / Irrelevante"] },
+    { section:"FILOSÓFICO", sectionLabel:"05 — FILOSÓFICO", id:"q19", text:"Que tema central ressoa com você agora?",
+      options:["Identidade — quem sou e o que me define?","Moralidade — o que separa o certo do errado?","Poder e corrupção","Amor, perda e tempo","Sobrevivência e instinto","Redenção — é possível recomeçar?","Nenhum — só quero entretenimento"],
+      openText:"Outro tema..." },
+    { section:"FILOSÓFICO", id:"q20", text:"Que tipo de moralidade você prefere nos personagens?",
+      options:["Heróis claros — o bem é o bem","Moralmente complexos — ninguém é puro","O antagonista tem razão na maior parte","Sem julgamento moral — apenas eventos","Tanto faz / Irrelevante"] },
+    { section:"FILOSÓFICO", id:"q21", text:"Qual a relação com a realidade que você busca?",
+      options:["Fantasia pura — fuga total","Metáfora — fantasia que fala do mundo real","Hiper-realismo — espelho brutal da vida","Realismo mágico — o extraordinário no cotidiano","Tanto faz / Irrelevante"] },
+    { section:"FILOSÓFICO", id:"q22", text:"Que tipo de tensão você prefere?",
+      options:["Física — ação, perigo, adrenalina","Psicológica — mente, manipulação, paranoia","Emocional — relacionamentos, perdas, dilemas","Existencial — o peso de existir e escolher","Prefiro sem tensão — quero leveza","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", sectionLabel:"06 — REFINAMENTO", id:"q23", text:"Sua relação com filmes premiados (Oscar, Palme d'Or...)?",
+      options:["Prefiro premiados — mais chance de qualidade","Indiferente — prêmio não garante nada","Evito — costumam ser lentos e herméticos","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", id:"q24", text:"Que tipo de humor funciona para você?",
+      options:["Comédia física / absurda","Ironia e sarcasmo","Humor negro","Sem humor — quero sério","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", id:"q25", text:"Por último: o que você definitivamente NÃO quer?", grid:true,
+      options:["Nada muito lento","Nada muito violento","Nada muito complexo","Nada com comédia excessiva","Nada com traições e viradas de aliados","Sem restrições — surpreenda-me"],
+      openText:"Outra restrição importante..." },
+    { section:"REFINAMENTO", id:"q26", text:"Cite um filme que te marcou. O que mais te tocou nele?",
+      openTextOnly:true,
+      openText:"Ex: Amei Parasita pela tensão de classe que vai aumentando até explodir. Me marcou Birdman pela forma como confunde realidade e ilusão..." }
+  ],
+
+  buildMainPrompt(summary) {
+    return `Você é um crítico e cinéfilo apaixonado com conhecimento enciclopédico. Analise o perfil abaixo e recomende exatamente 7 FILMES. NUNCA recomende séries ou animes — apenas filmes completos.
+${PRECISION_NOTE}
+PERFIL:
+${summary}
+INSTRUÇÕES: Analise todas as respostas. Ignore "Tanto faz / Irrelevante". Respostas livres têm peso extra. Inclua variedade. Não filtre por nota. Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE — NUNCA invente tradução.
+Responda APENAS em JSON válido sem markdown. Use EXATAMENTE estas chaves:
+{"tagline":"frase poética","perfil":"descrição do espectador em 1-2 linhas","items":[{"titulo":"Título oficial BR em português OU título original/inglês se não há versão BR","titulo_original":"Título no idioma original (só se diferente do campo titulo)","nota":"ex: 8.2/10 (TMDB)","generos":["Drama","Thriller"],"duracao":"ex: 2h 14min","ano":"ex: 2019","pais":"ex: Coreia do Sul","razao":"2-3 frases apaixonadas conectando ao perfil"}]}`;
+  },
+
+  buildReplacePrompt(summary, allTitles, seenTitles) {
+    return `Você é um cinéfilo especialista. O usuário marcou alguns filmes como "já vi".
+${PRECISION_NOTE}
+PERFIL: ${summary}
+JÁ RECOMENDADOS (não repita): ${allTitles.join(', ')}
+JÁ VISTOS (substitua): ${seenTitles.join(', ')}
+Recomende EXATAMENTE ${seenTitles.length} filme(s) novo(s) que combinem com o perfil e não estejam na lista. Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE.
+JSON sem markdown: {"items":[{"titulo":"Título oficial BR em português OU título original/inglês","titulo_original":"Título no idioma original (só se diferente)","nota":"8.2/10 (TMDB)","generos":["Drama"],"duracao":"2h","ano":"2019","pais":"EUA","razao":"2-3 frases"}]}`;
+  },
+
+  buildSimilarPrompt(name, conversation) {
+    return `Você é um crítico e cinéfilo apaixonado com conhecimento enciclopédico.
+${PRECISION_NOTE}
+O usuário amou "${name}" e quer FILMES similares (não séries, não animes).
+Conversa revelando o que ele busca:
+${conversation}
+Recomende exatamente 7 filmes. Exclua "${name}". Explique o que cada um compartilha com o filme amado e com as preferências reveladas. Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE.
+JSON sem markdown: {"tagline":"frase poética","perfil":"descrição do espectador","items":[{"titulo":"Título oficial BR em português OU título original/inglês","titulo_original":"Título no idioma original (só se diferente)","nota":"8.2/10 (TMDB)","generos":["Drama"],"duracao":"2h 14min","ano":"2019","pais":"Coreia do Sul","razao":"2-3 frases"}]}`;
+  },
+
+  buildChatSystemPrompt(name, maxQ) {
+    return `Você é Yomi, uma entidade ancestral que habita o espaço entre histórias — parte divindade, parte bibliotecária do infinito, guardiã de todos os filmes já criados e dos que ainda serão.
+Sua missão é descobrir o que prendeu o usuário em "${name}" para guiá-lo aos próximos filmes certos.
+Fale com sabedoria e calor. Faça exatamente ${maxQ} perguntas no total, uma por vez.
+Cubra: (1) o que especificamente mais te prendeu no filme, (2) o que quer preservar e o que pode mudar, (3) o que definitivamente não quer num similar.
+Máximo 2 frases por pergunta. Responda APENAS com o texto da pergunta.`;
+  }
+};
+
+/* ─────────────────────── SÉRIES ─────────────────────── */
+MODULES.series = {
+  accent:      '#3bb8a0',
+  accent2:     '#f5a623',
+  accentRgb:   '59,184,160',
+  fontBody:    "'DM Sans', sans-serif",
+  fontSerif:   "'DM Serif Display', serif",
+  eyebrow:     '// descoberta de séries',
+  titleHtml:   '劇を<span>観る</span>？',
+  subtitle:    'geki wo miru — que série assistir?',
+  decorTop:    '劇',
+  decorBottom: '話',
+  loadingKanji:  '劇',
+  loadingKanjis: ['劇','話','観','想','続','見'],
+  loadingMsgs: ['ANALISANDO SEU PERFIL DE ESPECTADOR','PESQUISANDO NOS ARQUIVOS DE EMMY E BAFTA','VERIFICANDO SUA TOLERÂNCIA A CLIFFHANGERS','CALCULANDO HORAS DE MARATONA NECESSÁRIAS','SEPARANDO PRESTIGE TV DE GUILTY PLEASURE','QUASE LÁ...'],
+  startDesc: 'Responda um questionário sobre seus gostos, humor e visão de mundo. A IA encontrará as séries que combinam exatamente com você — agora, neste momento.',
+  features: [['📺','26 perguntas'],['🎭','Narrativo'],['🌍','Internacional'],['✨','7 resultados']],
+  btnQuiz:    'COMEÇAR QUESTIONÁRIO',
+  btnSimilar: 'BUSQUE UMA SÉRIE SIMILAR',
+  similarLabel: '// QUAL SÉRIE VOCÊ AMOU?',
+  similarPlaceholder: 'Ex: Breaking Bad, The Wire, Succession...',
+  resultDefault: 'Suas Séries',
+  replaceLabel1: 'série marcada como já vista',
+  replaceLabelN: 'séries marcadas como já vistas',
+  yomiLabel: '⛩ YOMI — ORÁCULO DAS SÉRIES',
+  searchFn: q => `https://www.imdb.com/find/?q=${q}`,
+  searchLabel: '↗ VER NO IMDB',
+  secondaryField: 'titulo_original',
+
+  QUESTIONS: [
+    { section:"ESCOPO", sectionLabel:"01 — ESCOPO", id:"q1", text:"Que tipo de série você está procurando?", grid:true,
+      options:["Drama / Crime","Thriller / Suspense","Comédia","Ficção Científica / Fantasia","Terror","Histórica / Período","Docussérie / True Crime","Tanto faz — me surpreenda"] },
+    { section:"ESCOPO", id:"q2", text:"Qual formato combina com você agora?",
+      options:["Mini-série — história completa em 4 a 8 episódios","Série serializada — arco contínuo por temporadas","Procedural — cada episódio é um caso / história fechada","Antológica — cada temporada é um universo diferente","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q3", text:"Quantos episódios você topa?",
+      options:["Poucos — até 10 ep no total","Temporada curta — 8 a 13 ep","Temporada longa — 20+ ep","Série encerrada com múltiplas temporadas","Em andamento — ok esperar","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q4", text:"De onde você quer a série?",
+      options:["Americana","Britânica","Europeia (não britânica)","Asiática","Latino-americana","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q5", text:"Qual era de produção te interessa?",
+      options:["Antes dos anos 2000","Anos 2000–2010","2010–2020","Recente (2020+)","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", sectionLabel:"02 — NARRATIVA", id:"q6", text:"Qual ritmo de série combina com você?", type:"slider",
+      leftLabel:"FRENÉTICO\ncada ep termina em cliffhanger", rightLabel:"CONTEMPLATIVO\nlento, respira, sem pressa",
+      steps:["Frenético","Intenso","Equilibrado","Pausado","Contemplativo"],
+      stepValues:["frenético — cada episódio termina em cliffhanger","intenso — dinâmico com pausas","equilibrado — alterna bem","pausado — respira bastante","contemplativo — lento, sem pressa"] },
+    { section:"NARRATIVA", id:"q7", text:"Que nível de complexidade da trama você quer?", type:"slider",
+      leftLabel:"SIMPLES\nhistórias diretas, fácil de acompanhar", rightLabel:"DENSA\nmúltiplos arcos, exige atenção total",
+      steps:["Simples","Direta","Média","Densa","Labiríntica"],
+      stepValues:["simples — histórias diretas, fácil de acompanhar","direta com algumas reviravoltas","moderadamente complexa","densa — múltiplos arcos e camadas","labiríntica — exige atenção total e reanálise"] },
+    { section:"NARRATIVA", id:"q8", text:"O que mais te prende numa série?",
+      options:["Investigação e mistério que vai se revelando","Desenvolvimento profundo de personagens ao longo do tempo","Dinâmica e química entre o elenco","Construção de um mundo denso e coerente","Tensão e suspense crescente entre temporadas","Tanto faz / Irrelevante"],
+      openText:"Outro elemento que não está aqui..." },
+    { section:"NARRATIVA", id:"q9", text:"Protagonista central ou ensemble?",
+      options:["Protagonista forte e central — quero me identificar com um","Ensemble — elenco igualmente importante","Antológica — personagens diferentes por temporada","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", id:"q10", text:"Como você prefere os episódios?",
+      options:["Cada episódio avança o arco — não posso parar","Episódios autoconclusivos dentro de um arco maior","Cada episódio é uma história completamente independente","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", id:"q11", text:"Que tipo de final de temporada você prefere?",
+      options:["Cliffhanger brutal — odeio e amo ao mesmo tempo","Resolução satisfatória com gancho suave para o próximo","Cada temporada é uma história fechada","Tanto faz / Irrelevante"] },
+    { section:"EMOCIONAL", sectionLabel:"03 — EMOCIONAL", id:"q12", text:"O que você quer sentir ao terminar um episódio?",
+      options:["Viciado — PRECISO do próximo agora","Perturbado e pensativo — algo que fica na cabeça","Emocionado — até chorar está ok","Aconchegado e satisfeito","Rindo — humor que sustenta","Tenso — coração acelerado","Maravilhado com o que acabou de ver"],
+      openText:"Outro sentimento..." },
+    { section:"EMOCIONAL", id:"q13", text:"Como você está se sentindo hoje?",
+      options:["Animado — quero algo intenso e denso","Tranquilo — quero relaxar sem muito esforço","Melancólico — quero sentir mais fundo","Ansioso — preciso me distrair e desligar","Entediado — choque-me, surpreenda-me"],
+      openText:"Descreva o que está buscando agora..." },
+    { section:"EMOCIONAL", id:"q14", text:"Que tipo de protagonista te cativa mais?",
+      options:["Herói determinado — apaixonado pela missão","Anti-herói moralmente ambíguo — fascinante e incômodo","Pessoa comum em situação extrema — identificável","Gênio frio e calculista — dois passos à frente","Alguém se desintegrando lentamente — é difícil parar de olhar","Tanto faz / Irrelevante"],
+      openText:"Outro tipo de protagonista..." },
+    { section:"EMOCIONAL", id:"q15", text:"Qual sua tolerância a conteúdo pesado?", type:"slider",
+      leftLabel:"ZERO\nquero algo leve e seguro", rightLabel:"EXTREMO\nviolência explícita, trauma, sem filtro",
+      steps:["Zero","Leve","Médio","Alto","Extremo"],
+      stepValues:["zero — quero algo totalmente leve","leve — um pouco de tensão, nada gráfico","médio — consigo com moderação","alto — quanto mais intenso melhor","extremo — violência explícita, trauma, sem filtro"] },
+    { section:"EMOCIONAL", id:"q16", text:"Qual o peso do romance na série que você quer?", type:"slider",
+      leftLabel:"CENTRAL\ncoração da narrativa", rightLabel:"NENHUM\nprefiro sem",
+      steps:["Central","Importante","Secundário","Sutil","Nenhum"],
+      stepValues:["central — é o coração da narrativa","importante — presente e relevante","secundário — presente mas não dominante","sutil — insinuado, nunca explícito","nenhum — prefiro sem romance"] },
+    { section:"ESTÉTICA", sectionLabel:"04 — ESTÉTICA", id:"q17", text:"Que tipo de produção visual te atrai?", grid:true,
+      options:["Cinematográfica — parece um filme longo","Documental e realista — câmera na mão","Noir e sombria — paleta fechada","Colorida e estilizada","Minimalista — foco nos personagens","Tanto faz / Irrelevante"] },
+    { section:"ESTÉTICA", id:"q18", text:"Como você prefere os vilões ou antagonistas?",
+      options:["Vilão claro e ameaçador — o mal é o mal","Antagonista com motivação compreensível — quase certo","Antagonista que tem razão na maior parte do tempo","Sistema ou estrutura como antagonista — sem vilão pessoal","Tanto faz / Irrelevante"] },
+    { section:"FILOSÓFICO", sectionLabel:"05 — FILOSÓFICO", id:"q19", text:"Que tema central ressoa com você agora?",
+      options:["Poder e corrupção — o que o poder faz às pessoas","Identidade e pertencimento — quem sou e onde me encaixo?","Moralidade e consequências — toda ação tem um preço","Família e lealdade — a quem você deve o quê?","Redenção — é possível mudar quem você é?","Sobrevivência — até onde você iria?","Nenhum — só quero entretenimento"],
+      openText:"Outro tema que me interessa..." },
+    { section:"FILOSÓFICO", id:"q20", text:"Que tipo de moralidade você prefere?",
+      options:["Heróis claros — o bem é o bem","Moralmente complexos — ninguém é puro","O antagonista tem razão na maior parte","Sem julgamento moral — apenas eventos","Tanto faz / Irrelevante"] },
+    { section:"FILOSÓFICO", id:"q21", text:"Que tipo de tensão você prefere?",
+      options:["Física — ação, perigo, adrenalina","Psicológica — paranoia, manipulação, jogo mental","Emocional — relacionamentos, perdas, traições","Intelectual — estratégia, xadrez, quem sabe mais","Prefiro sem tensão","Tanto faz / Irrelevante"] },
+    { section:"FILOSÓFICO", id:"q22", text:"Como você prefere que os personagens evoluam ao longo da série?",
+      options:["Crescimento claro e satisfatório — me torço por eles","Regressão ou corrupção — a queda é fascinante","Estáticos — consistência é mais importante que arco","Transformação radical — irreconhecível no final","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", sectionLabel:"06 — REFINAMENTO", id:"q23", text:"Que tipo de humor funciona para você?",
+      options:["Absurdo e nonsense","Ironia seca","Humor negro","Sem humor — quero sério e denso","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", id:"q24", text:"Sua relação com séries canceladas antes do final:",
+      options:["Evito completamente — preciso de conclusão","Aceito o risco se valer a pena","Não me importo — curto o que existe","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", id:"q25", text:"Por último: o que você definitivamente NÃO quer?", grid:true,
+      options:["Nada muito lento","Nada muito violento","Nada muito complexo","Nada com comédia excessiva","Nada com traições e viradas de aliados","Sem restrições — surpreenda-me"],
+      openText:"Outra restrição importante..." },
+    { section:"REFINAMENTO", id:"q26", text:"Cite uma série que te marcou. O que mais te prendeu nela?",
+      openTextOnly:true,
+      openText:"Ex: Amei Breaking Bad pela deterioração moral lenta do Walter White. Me viciou Dark pela forma como conecta personagens e linhas temporais..." }
+  ],
+
+  buildMainPrompt(summary) {
+    return `Você é um especialista em séries de televisão. Analise o perfil abaixo e recomende exatamente 7 SÉRIES DE TV. NUNCA recomende filmes ou animes — apenas séries com episódios e temporadas.
+${PRECISION_NOTE}
+PERFIL:
+${summary}
+INSTRUÇÕES: Analise todas as respostas. Ignore "Tanto faz / Irrelevante". Respostas livres têm peso extra. Inclua variedade. Não filtre por nota. Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE — NUNCA invente tradução.
+Responda APENAS em JSON válido sem markdown. Use EXATAMENTE estas chaves:
+{"tagline":"frase poética","perfil":"descrição do espectador em 1-2 linhas","items":[{"titulo":"Título oficial BR em português OU título original/inglês se não há versão BR","titulo_original":"Título no idioma original (só se diferente do campo titulo)","nota":"ex: 8.2/10 (TMDB)","generos":["Drama","Thriller"],"duracao":"ex: 55 min / ep","temporadas":"ex: 5 temporadas","ano":"ex: 2008","pais":"ex: EUA","razao":"2-3 frases apaixonadas conectando ao perfil"}]}`;
+  },
+
+  buildReplacePrompt(summary, allTitles, seenTitles) {
+    return `Você é um especialista em séries. O usuário marcou algumas como "já vi".
+${PRECISION_NOTE}
+PERFIL: ${summary}
+JÁ RECOMENDADOS (não repita): ${allTitles.join(', ')}
+JÁ VISTOS (substitua): ${seenTitles.join(', ')}
+Recomende EXATAMENTE ${seenTitles.length} série(s) nova(s) que combinem com o perfil e não estejam na lista. Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE.
+JSON sem markdown: {"items":[{"titulo":"Título oficial BR em português OU título original/inglês","titulo_original":"Título no idioma original (só se diferente)","nota":"8.2/10 (TMDB)","generos":["Drama"],"duracao":"55 min / ep","temporadas":"3 temporadas","ano":"2019","pais":"EUA","razao":"2-3 frases"}]}`;
+  },
+
+  buildSimilarPrompt(name, conversation) {
+    return `Você é um especialista em televisão com conhecimento enciclopédico.
+${PRECISION_NOTE}
+O usuário amou "${name}" e quer SÉRIES similares (não filmes, não animes).
+Conversa revelando o que ele busca:
+${conversation}
+Recomende exatamente 7 séries. Exclua "${name}". Explique o que cada uma compartilha com a série amada e com as preferências reveladas. Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE.
+JSON sem markdown: {"tagline":"frase poética","perfil":"descrição do espectador","items":[{"titulo":"Título oficial BR em português OU título original/inglês","titulo_original":"Título no idioma original (só se diferente)","nota":"8.2/10 (IMDB)","generos":["Drama"],"duracao":"55 min / ep","temporadas":"3 temporadas","ano":"2019","pais":"EUA","razao":"2-3 frases"}]}`;
+  },
+
+  buildChatSystemPrompt(name, maxQ) {
+    return `Você é Yomi, uma entidade ancestral que habita o espaço entre histórias — parte divindade, parte bibliotecária do infinito, guardiã de todas as séries já criadas e das que ainda serão.
+Sua missão é descobrir o que prendeu o usuário em "${name}" para guiá-lo às próximas séries certas.
+Fale com sabedoria e calor. Faça exatamente ${maxQ} perguntas no total, uma por vez.
+Cubra: (1) o que especificamente mais te prendeu na série, (2) o que quer preservar e o que pode mudar, (3) o que definitivamente não quer num similar.
+Máximo 2 frases por pergunta. Responda APENAS com o texto da pergunta.`;
+  }
+};
+
+/* ─────────────────────── DORAMAS ─────────────────────── */
+MODULES.doramas = {
+  accent:      '#c084fc',
+  accent2:     '#f472b6',
+  accentRgb:   '192,132,252',
+  fontBody:    "'Noto Sans KR', sans-serif",
+  fontSerif:   "'Noto Serif KR', serif",
+  eyebrow:     '// descoberta de doramas',
+  titleHtml:   '뭘 <span>볼까</span>？',
+  subtitle:    'mwol bolkka — o que assistir?',
+  decorTop:    '드라마',
+  decorBottom: '韓',
+  loadingKanji:  '韓',
+  loadingKanjis: ['韓','극','볼','想','续','見'],
+  loadingMsgs: ['ANALISANDO SEU PERFIL EMOCIONAL','CONSULTANDO OS ARQUIVOS DE SEOUL','VERIFICANDO SUA TOLERÂNCIA A SLOW BURN','CALCULANDO QUANTAS LÁGRIMAS VOCÊ AGUENTA','SEPARANDO KDRAMA DE JDRAMA DE CDRAMA','QUASE LÁ...'],
+  startDesc: 'Responda um questionário sobre seus gostos, humor e visão de mundo. A IA encontrará os doramas que combinam exatamente com você — agora, neste momento.',
+  features: [['🇰🇷','26 perguntas'],['🎭','Narrativo'],['🌍','Asiático'],['✨','7 resultados']],
+  btnQuiz:    'COMEÇAR QUESTIONÁRIO',
+  btnSimilar: 'BUSQUE UM DORAMA SIMILAR',
+  similarLabel: '// QUAL DORAMA VOCÊ AMOU?',
+  similarPlaceholder: 'Ex: Crash Landing on You, My Mister, Vincenzo...',
+  resultDefault: 'Seus Doramas',
+  replaceLabel1: 'dorama marcado como já visto',
+  replaceLabelN: 'doramas marcados como já vistos',
+  yomiLabel: '⛩ YOMI — ORÁCULO DOS DORAMAS',
+  searchFn: q => `https://mydramalist.com/search?q=${q}`,
+  searchLabel: '↗ VER NO MYDRAMALIST',
+  secondaryField: 'titulo_original',
+
+  QUESTIONS: [
+    { section:"ESCOPO", sectionLabel:"01 — ESCOPO", id:"q1", text:"Que tipo de dorama você está procurando?", grid:true,
+      options:["Romance / Drama romântico","Thriller / Suspense","Comédia romântica (romcom)","Histórico (saeguk)","Fantasia / Sobrenatural","Drama familiar / Social","Policial / Jurídico / Médico","Tanto faz — me surpreenda"] },
+    { section:"ESCOPO", id:"q2", text:"De qual país você prefere?",
+      options:["Coreano (kdrama) — intenso, emocional, produção alta","Japonês (jdrama) — sutil, melancólico, contido","Chinês (cdrama) — épico, histórico, grande escala","Tailandês (thai drama) — romance BL e het","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q3", text:"Qual ambientação temporal você prefere?",
+      options:["Contemporâneo — mundo atual, urbano","Histórico — Joseon, Dynasty, era feudal","Fantasia histórica — passado com elementos mágicos","Fantasia contemporânea — mundo atual com sobrenatural","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q4", text:"Quantos episódios você topa?",
+      options:["Curto — até 12 ep (formato moderno)","Médio — 16 a 20 ep (formato clássico kdrama)","Longo — 24 a 50 ep","Mini-série — menos de 8 ep","Tanto faz / Irrelevante"] },
+    { section:"ESCOPO", id:"q5", text:"Qual era te interessa?",
+      options:["Clássico (antes de 2010) — estética mais lenta","2010–2018 — era de ouro do kdrama","2018–2022","Bem recente (2022+)","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", sectionLabel:"02 — NARRATIVA", id:"q6", text:"Qual ritmo de dorama combina com você?", type:"slider",
+      leftLabel:"INTENSO\ncada episódio é uma montanha-russa", rightLabel:"SLOW BURN\nconstrução lenta e deliberada",
+      steps:["Intenso","Dinâmico","Equilibrado","Pausado","Slow Burn"],
+      stepValues:["intenso — cada episódio é uma montanha-russa","dinâmico com pausas","equilibrado — alterna bem","pausado — respira bastante","slow burn — construção lenta e deliberada"] },
+    { section:"NARRATIVA", id:"q7", text:"Quanto de previsibilidade você quer?", type:"slider",
+      leftLabel:"CONFORTÁVEL\ngosto dos tropos, quero o esperado", rightLabel:"SURPREENDENTE\nquebre tudo que eu espero",
+      steps:["Confortável","Familiar","Equilibrado","Subvertido","Surpreendente"],
+      stepValues:["confortável — gosto dos tropos, quero o esperado","familiar com algumas surpresas","equilibrado entre tropos e novidade","subvertido — maioria das expectativas quebradas","surpreendente — quebre tudo que eu espero"] },
+    { section:"NARRATIVA", id:"q8", text:"O que mais te prende num dorama?",
+      options:["A química e tensão entre o casal principal","O mistério e as reviravoltas da trama","O desenvolvimento emocional dos personagens","A riqueza do contexto histórico ou de época","A dinâmica de grupo — amizades e rivalidades","Tanto faz / Irrelevante"],
+      openText:"Outro elemento que não está aqui..." },
+    { section:"NARRATIVA", id:"q9", text:"Como você quer que o romance se desenvolva?",
+      options:["Enemies to lovers — tensão antes de tudo","Friends to lovers — crescimento gradual e natural","Amor à primeira vista — química imediata","Reencarnação / destino — encontros de vidas passadas","Sem romance central — prefiro outro foco","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", id:"q10", text:"Em qual universo temático você quer se mergulhar?",
+      options:["Escritório / corporativo / chaebol — competição e poder","Medicina / jurídico / policial — profissão como pano de fundo","Escola / juventude — crescimento e primeiros amores","Royalty / aristocracia — hierarquia e prestígio","Cotidiano e fatias de vida — realismo emocional","Tanto faz / Irrelevante"] },
+    { section:"NARRATIVA", id:"q11", text:"Que tipo de final você prefere?",
+      options:["Final feliz — preciso do casal junto","Agridoce — realista e honesto","Trágico — os melhores doramas me destroem","Aberto — deixa espaço pra imaginar","Tanto faz / Irrelevante"] },
+    { section:"EMOCIONAL", sectionLabel:"03 — EMOCIONAL", id:"q12", text:"O que você quer sentir ao terminar um episódio?",
+      options:["Com o coração partido — de um jeito bom","Com borboletas no estômago — puro kilig","Emocionado — pode chorar muito","Viciado — PRECISO do próximo episódio","Aconchegado e satisfeito","Perturbado e pensativo"],
+      openText:"Outro sentimento..." },
+    { section:"EMOCIONAL", id:"q13", text:"Como você está se sentindo hoje?",
+      options:["Querendo sentir muito — não me poupe","Tranquilo — quero algo leve e fofo","Melancólico — quero sentir mais fundo","Ansioso — preciso me distrair","Entediado — me surpreenda"],
+      openText:"Descreva o que está buscando agora..." },
+    { section:"EMOCIONAL", id:"q14", text:"Que tipo de dinâmica de casal te cativa mais?",
+      options:["Casal que briga antes de se amar — muita tensão","Casal que cresce junto devagar — cumplicidade profunda","Casal improvável — diferenças que se complementam","Casal que reencontra — amor que o tempo não apagou","Parceria de trabalho que vira amor — construção lenta","Tanto faz / Irrelevante"],
+      openText:"Outro tipo de dinâmica..." },
+    { section:"EMOCIONAL", id:"q15", text:"Que tipo de protagonista te move mais?",
+      options:["Determinado e apaixonado — vai até o fim por quem ama","Frio por fora, intenso por dentro — vai se abrindo","Ordinário mas com coração imenso — muito identificável","Quebrado e reconstruindo — a jornada é ver ele renascer","Tanto faz / Irrelevante"],
+      openText:"Outro perfil que me atrai..." },
+    { section:"EMOCIONAL", id:"q16", text:"Qual sua tolerância a conteúdo pesado?", type:"slider",
+      leftLabel:"ZERO\nquero algo leve e romântico", rightLabel:"INTENSO\ntrauma, violência, temas sombrios",
+      steps:["Zero","Leve","Médio","Intenso","Sombrio"],
+      stepValues:["zero — quero algo leve e romântico","leve — um pouco de tensão, nada pesado","médio — consigo com moderação","intenso — temas difíceis estão ok","sombrio — trauma, violência, temas pesados bem explorados"] },
+    { section:"ESTÉTICA", sectionLabel:"04 — ESTÉTICA", id:"q17", text:"Estética visual que te atrai?", grid:true,
+      options:["Cinematográfica — parece um filme","Contemporânea urbana — Seul moderna","Histórica — figurino e cenografia ricos","Fantasia visual — cores e efeitos","Naturalista e íntima","Tanto faz / Irrelevante"] },
+    { section:"ESTÉTICA", id:"q18", text:"Qual o papel da família na história que você busca?",
+      options:["Família como pilar e fonte de força emocional","Família como fonte de conflito e pressão","Família disfuncional — o personagem precisa se livrar dela","Família ausente — o personagem está sozinho no mundo","Tanto faz / Irrelevante"] },
+    { section:"FILOSÓFICO", sectionLabel:"05 — FILOSÓFICO", id:"q19", text:"Que tema ressoa com você agora?",
+      options:["Amor que supera diferenças de classe ou status","Identidade e pressão social — ser quem você realmente é","Redenção — pessoas podem mudar de verdade?","Justiça — fazer o certo num mundo injusto","Solidão e conexão — ser visto e compreendido","Nenhum — só quero romance e entretenimento"],
+      openText:"Outro tema que me interessa..." },
+    { section:"FILOSÓFICO", id:"q20", text:"Como você prefere que a sociedade apareça na história?",
+      options:["Crítica social explícita — desigualdade, sistema, poder","Pano de fundo neutro — só existe para contextualizar","Celebração da cultura — hierarquia, tradição, costumes","Conflito entre tradição e modernidade","Tanto faz / Irrelevante"] },
+    { section:"FILOSÓFICO", id:"q21", text:"Que tipo de tensão você prefere?",
+      options:["Tensão romântica — will they won't they, me mata de ansiedade","Tensão de thriller — perigo real, vida em risco","Tensão emocional — dilemas, escolhas impossíveis","Tensão de hierarquia e poder — quem vai vencer o jogo","Prefiro sem tensão — quero leveza","Tanto faz / Irrelevante"] },
+    { section:"FILOSÓFICO", id:"q22", text:"Que tipo de moralidade você prefere nos personagens?",
+      options:["Heróis claramente bons que merecem a vitória","Personagens complexos — ninguém é puro","Antagonista com razão — você entende e quase torce","Sem julgamento moral — só observa os eventos","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", sectionLabel:"06 — REFINAMENTO", id:"q23", text:"Que tipo de humor você prefere?",
+      options:["Comédia física e situacional","Humor na dinâmica e briga do casal","Ironia e awkwardness social","Prefiro sem comédia — quero sério","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", id:"q24", text:"Sua relação com o ritmo dos primeiros episódios:",
+      options:["Adoro construção lenta — vale a pena investir","Aceito até o episódio 4, depois precisa engatar","Precisa me prender no primeiro episódio","Tanto faz / Irrelevante"] },
+    { section:"REFINAMENTO", id:"q25", text:"Por último: o que você definitivamente NÃO quer?", grid:true,
+      options:["Nada muito lento","Nada muito pesado","Nada sem romance","Nada muito complexo","Nada com traições e viradas de aliados","Sem restrições — surpreenda-me"],
+      openText:"Outra restrição importante..." },
+    { section:"REFINAMENTO", id:"q26", text:"Cite um dorama, série ou filme que te marcou. O que te prendeu?",
+      openTextOnly:true,
+      openText:"Ex: Amei My Mister pelo silêncio e o peso emocional de cada cena. Me destruiu Crash Landing on You pela química do casal e o contexto impossível..." }
+  ],
+
+  buildMainPrompt(summary) {
+    return `Você é um especialista apaixonado em doramas asiáticos com conhecimento profundo de kdrama, jdrama e cdrama. Analise o perfil abaixo e recomende exatamente 7 doramas. Inclua variedade de países (kdrama, jdrama, cdrama) quando o perfil permitir.
+${PRECISION_NOTE}
+PERFIL:
+${summary}
+INSTRUÇÕES: Analise todas as respostas. Ignore "Tanto faz / Irrelevante". Respostas livres têm peso extra. Inclua variedade. Não filtre por nota. Seja apaixonado e específico. Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE — NUNCA invente tradução.
+Responda APENAS em JSON válido sem markdown. Use EXATAMENTE estas chaves:
+{"tagline":"frase poética","perfil":"descrição do espectador em 1-2 linhas","items":[{"titulo":"Título oficial BR em português OU título em inglês/romanizado se não há versão BR","titulo_original":"Título no idioma original (só se diferente do campo titulo)","nota":"ex: 8.2/10 (MDL)","generos":["Drama","Romance"],"duracao":"ex: 16 ep","ano":"ex: 2019","pais":"ex: Coreia do Sul","razao":"2-3 frases apaixonadas conectando ao perfil"}]}`;
+  },
+
+  buildReplacePrompt(summary, allTitles, seenTitles) {
+    return `Você é um especialista em doramas. O usuário marcou alguns como "já vi".
+${PRECISION_NOTE}
+PERFIL: ${summary}
+JÁ RECOMENDADOS (não repita): ${allTitles.join(', ')}
+JÁ VISTOS (substitua): ${seenTitles.join(', ')}
+Recomende EXATAMENTE ${seenTitles.length} dorama(s) novo(s) que combinem com o perfil e não estejam na lista. Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE.
+JSON sem markdown: {"items":[{"titulo":"Título oficial BR em português OU título em inglês/romanizado","titulo_original":"Título no idioma original (só se diferente)","nota":"8.2/10 (MDL)","generos":["Drama"],"duracao":"16 ep","ano":"2019","pais":"Coreia do Sul","razao":"2-3 frases"}]}`;
+  },
+
+  buildSimilarPrompt(name, conversation) {
+    return `Você é um especialista em doramas asiáticos com conhecimento enciclopédico.
+${PRECISION_NOTE}
+O usuário amou "${name}" e quer DORAMAS similares.
+Conversa revelando o que ele busca:
+${conversation}
+Recomende exatamente 7 doramas. Exclua "${name}". Inclua variedade de países quando possível. Explique o que cada um compartilha com o dorama amado. Siga RIGOROSAMENTE a hierarquia de títulos do PRECISION_NOTE.
+JSON sem markdown: {"tagline":"frase poética","perfil":"descrição do espectador","items":[{"titulo":"Título oficial BR em português OU título em inglês/romanizado","titulo_original":"Título no idioma original (só se diferente)","nota":"8.2/10 (MDL)","generos":["Drama"],"duracao":"16 ep","ano":"2019","pais":"Coreia do Sul","razao":"2-3 frases"}]}`;
+  },
+
+  buildChatSystemPrompt(name, maxQ) {
+    return `Você é Yomi, uma entidade ancestral que habita o espaço entre histórias — parte divindade, parte bibliotecária do infinito, guardiã de todos os doramas já criados e dos que ainda serão.
+Sua missão é descobrir o que prendeu o usuário em "${name}" para guiá-lo aos próximos doramas certos.
+Fale com sabedoria e calor. Faça exatamente ${maxQ} perguntas no total, uma por vez.
+Cubra: (1) o que especificamente mais te prendeu no dorama, (2) o que quer preservar e o que pode mudar, (3) o que definitivamente não quer num similar.
+Máximo 2 frases por pergunta. Responda APENAS com o texto da pergunta.`;
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════════════════════════ */
+function toggleTheme() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  document.documentElement.setAttribute('data-theme', isLight ? 'dark' : 'light');
+  document.getElementById('themeToggle').textContent = isLight ? '☀' : '☾';
+  localStorage.setItem('nani-theme', isLight ? 'dark' : 'light');
+}
+
+(function initTheme() {
+  const saved = localStorage.getItem('nani-theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  document.getElementById('themeToggle').textContent = saved === 'light' ? '☾' : '☀';
+})();
+
+/* ═══════════════════════════════════════════════════════════════
+   ROUTER
+═══════════════════════════════════════════════════════════════ */
+let currentModule = null;
+
+function applyModule(mod) {
+  currentModule = mod;
+
+  // CSS vars
+  document.documentElement.style.setProperty('--accent',      mod.accent);
+  document.documentElement.style.setProperty('--accent2',     mod.accent2);
+  document.documentElement.style.setProperty('--accent-rgb',  mod.accentRgb);
+  document.documentElement.style.setProperty('--font-body',   mod.fontBody);
+  document.documentElement.style.setProperty('--font-serif',  mod.fontSerif);
+
+  // Decorations
+  const dt = document.getElementById('decorTop');
+  const db = document.getElementById('decorBottom');
+  if (dt) { dt.textContent = mod.decorTop; dt.style.fontSize = mod.decorTop.length > 2 ? '60px' : '140px'; }
+  if (db) db.textContent = mod.decorBottom;
+
+  // Header
+  document.getElementById('quizEyebrow').textContent = mod.eyebrow;
+  document.getElementById('quizTitle').innerHTML     = mod.titleHtml;
+  document.getElementById('quizSubtitle').textContent = mod.subtitle;
+
+  // Start screen
+  document.getElementById('startDesc').textContent = mod.startDesc;
+  document.getElementById('startFeatures').innerHTML = mod.features.map(([icon,label]) =>
+    `<div class="feature"><span class="feature-icon">${icon}</span><span class="feature-label">${label}</span></div>`
+  ).join('');
+  document.getElementById('btnStartQuiz').textContent    = mod.btnQuiz;
+  document.getElementById('btnStartSimilar').textContent = mod.btnSimilar;
+
+  // Similar
+  document.getElementById('similarLabel').textContent = mod.similarLabel;
+  document.getElementById('animeNameInput').placeholder = mod.similarPlaceholder;
+
+  // Results default
+  document.getElementById('resultsTagline').textContent = mod.resultDefault;
+
+  // Loading messages
+  document.getElementById('loadingKanji').textContent = mod.loadingKanji;
+  document.getElementById('loadingMessages').innerHTML = mod.loadingMsgs.map((m,i) =>
+    `<span${i===0?' class="active"':''}>${m}</span>`
+  ).join('');
+}
+
+function showHub() {
+  document.getElementById('page-hub').style.display  = '';
+  document.getElementById('page-quiz').style.display = 'none';
+  document.getElementById('page-quiz').classList.remove('active');
+  // Reset CSS vars to hub defaults (no accent needed on hub)
+  resetModuleVars();
+}
+
+function showQuiz(moduleKey) {
+  const mod = MODULES[moduleKey];
+  if (!mod) return;
+  document.getElementById('page-hub').style.display  = 'none';
+  document.getElementById('page-quiz').style.display = '';
+  document.getElementById('page-quiz').classList.add('active');
+  applyModule(mod);
+  resetQuizState();
+}
+
+function resetModuleVars() {
+  document.documentElement.style.removeProperty('--accent');
+  document.documentElement.style.removeProperty('--accent2');
+  document.documentElement.style.removeProperty('--accent-rgb');
+  document.documentElement.style.removeProperty('--font-body');
+  document.documentElement.style.removeProperty('--font-serif');
+}
+
+function route() {
+  const hash = location.hash.replace('#','').toLowerCase();
+  if (hash === '' || hash === 'hub') { showHub(); return; }
+  if (MODULES[hash]) { showQuiz(hash); return; }
+  showHub();
+}
+
+window.addEventListener('hashchange', route);
+window.addEventListener('DOMContentLoaded', route);
+
+// Hub: cursor glow
+document.addEventListener('mousemove', e => {
+  const g = document.getElementById('hubGlow3');
+  if (g && document.getElementById('page-hub').style.display !== 'none') {
+    g.style.left = `${(e.clientX / window.innerWidth) * 100 - 15}%`;
+    g.style.top  = `${(e.clientY / window.innerHeight) * 100 - 15}%`;
+  }
+});
+
+// Hub cards stagger
+document.querySelectorAll('.media-card').forEach((card, i) => {
+  card.style.animation = `fadeUp 0.6s ${0.3 + i * 0.08}s ease both`;
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   QUIZ STATE
+═══════════════════════════════════════════════════════════════ */
+let currentIndex    = 0;
+let answers         = {};
+let loadingInterval = null;
+let loadingMsgIdx   = 0;
+let currentItems    = [];
+let seenTitles      = [];
+let similarName     = '';
+let chatHistory     = [];
+let chatQCount      = 0;
+const MAX_CHAT_Q    = 3;
+let selectedTier    = 26;
+let activeQuestions = [];
+
+function resetQuizState() {
+  currentIndex = 0; answers = {}; currentItems = []; seenTitles = [];
+  similarName = ''; chatHistory = []; chatQCount = 0; activeQuestions = [];
+  // Reset screens
+  ['startScreen','quizScreen','similarScreen','loadingScreen','resultsScreen'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.style.display = ''; el.classList.remove('active'); }
+  });
+  document.getElementById('startScreen').style.display = 'block';
+  document.getElementById('chatMessages').innerHTML = '';
+  document.getElementById('animeNameInput').value = '';
+  document.getElementById('animeInputWrap').style.display = 'block';
+  document.getElementById('chatWrap').classList.remove('active');
+  document.getElementById('chatInputRow').classList.remove('active');
+  document.getElementById('replaceBar').classList.remove('active');
+  document.getElementById('resultsContainer').innerHTML = '';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   START / NAVIGATION
+═══════════════════════════════════════════════════════════════ */
+function selectTier(n) {
+  selectedTier = n;
+  document.querySelectorAll('.tier-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.tier) === n);
+  });
+}
+
+function startQuiz() {
+  const indices = QUESTION_TIERS[selectedTier];
+  activeQuestions = indices
+    ? currentModule.QUESTIONS.filter((_, i) => indices.includes(i))
+    : [...currentModule.QUESTIONS];
+
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('quizScreen').classList.add('active');
+  renderQuestion(0);
+}
+
+function startSimilar() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('similarScreen').classList.add('active');
+  setTimeout(() => document.getElementById('animeNameInput').focus(), 200);
+}
+
+function backToStart() {
+  document.getElementById('similarScreen').classList.remove('active');
+  document.getElementById('startScreen').style.display = 'block';
+  similarName = ''; chatHistory = []; chatQCount = 0;
+  document.getElementById('chatMessages').innerHTML = '';
+  document.getElementById('animeNameInput').value = '';
+  document.getElementById('animeInputWrap').style.display = 'block';
+  document.getElementById('chatWrap').classList.remove('active');
+  document.getElementById('chatInputRow').classList.remove('active');
+}
+
+function restartQuiz() {
+  resetQuizState();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   QUIZ RENDER
+═══════════════════════════════════════════════════════════════ */
+function renderQuestion(idx) {
+  const QUESTIONS = activeQuestions;
+  const q = QUESTIONS[idx];
+  const total = QUESTIONS.length;
+  document.getElementById('progressLabel').textContent   = `PERGUNTA ${idx+1} / ${total}`;
+  document.getElementById('progressSection').textContent = q.section;
+  document.getElementById('progressFill').style.width    = `${(idx/total)*100}%`;
+  const saved = answers[q.id];
+  let html = `<div class="question-wrap">`;
+  if (q.sectionLabel) html += `<div class="question-section-label">${q.sectionLabel}</div>`;
+  html += `<div class="question-number">// ${String(idx+1).padStart(2,'0')}</div>`;
+  html += `<div class="question-text">${q.text}</div>`;
+
+  if (q.type === 'slider') {
+    const sv = (saved && saved.type==='slider') ? saved.stepIndex : null;
+    const pct = sv !== null ? (sv/(q.steps.length-1))*100 : 0;
+    const stepsHtml = q.steps.map((s,si) =>
+      `<span class="slider-step${sv===si?' active':''}" onclick="selectSliderStep('${q.id}',${si})">${s}</span>`
+    ).join('');
+    html += `<div class="slider-wrap" id="slwrap_${q.id}">
+      <div class="slider-poles">
+        <div class="slider-pole${sv!==null&&sv<=1?' active-pole':''}">${q.leftLabel.replace('\n','<br>')}</div>
+        <div class="slider-pole right${sv!==null&&sv>=q.steps.length-2?' active-pole':''}">${q.rightLabel.replace('\n','<br>')}</div>
+      </div>
+      <div class="slider-track" id="sltrack_${q.id}">
+        <div class="slider-fill"  id="slfill_${q.id}"  style="width:${sv!==null?pct:0}%"></div>
+        <div class="slider-thumb" id="slthumb_${q.id}" style="left:${sv!==null?pct:50}%"></div>
+        <input type="range" class="slider-input" id="slinput_${q.id}"
+          min="0" max="${q.steps.length-1}" step="1"
+          value="${sv!==null?sv:Math.floor(q.steps.length/2)}"
+          oninput="onSliderInput('${q.id}')" onchange="onSliderInput('${q.id}')">
+      </div>
+      <div class="slider-steps">${stepsHtml}</div>
+      <div class="slider-value-label" id="slval_${q.id}">${sv!==null?q.steps[sv].toUpperCase():''}</div>
+    </div>`;
+  } else if (!q.openTextOnly && q.options) {
+    const cls = q.grid ? 'options grid' : 'options';
+    html += `<div class="${cls}">`;
+    q.options.forEach((opt, oi) => {
+      const isIrr = opt.toLowerCase().includes('tanto faz')||opt.toLowerCase().includes('irrelevante');
+      const isSel = saved && saved.type==='option' && saved.optionIndex===oi;
+      html += `<button class="option${isIrr?' irrelevant':''}${isSel?' selected':''}" onclick="selectOption('${q.id}',${oi})"><span class="option-dot"></span>${opt}</button>`;
+    });
+    html += `</div>`;
+  }
+
+  if (q.openText) {
+    const isOpenSel = saved && saved.type==='open';
+    const savedTxt  = isOpenSel ? (saved.text||'') : '';
+    html += `<div class="open-text-wrap${isOpenSel?' active':''}" id="otw_${q.id}" onclick="activateOpen('${q.id}')">
+      <div class="open-text-label"><span class="option-dot"></span>${q.openTextOnly?'Escreva aqui...':'Outro / quero especificar...'}</div>
+      <textarea class="open-text-input" id="oti_${q.id}" rows="3" placeholder="${q.openText}"
+        oninput="onOpenInput('${q.id}')" onclick="event.stopPropagation()">${savedTxt}</textarea>
+    </div>`;
+  }
+
+  html += `<div class="question-nav">
+    <button class="btn-nav" onclick="goBack()"${idx===0?' disabled':''}>← VOLTAR</button>
+    <span class="error-inline" id="errorInline">SELECIONE UMA OPÇÃO</span>
+    <button class="btn-nav primary" onclick="goNext()">${idx===total-1?'VER RESULTADOS →':'PRÓXIMA →'}</button>
+  </div></div>`;
+
+  const c = document.getElementById('questionContainer');
+  c.innerHTML = html;
+  c.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function onSliderInput(qId) {
+  const q    = activeQuestions.find(q=>q.id===qId);
+  const inp  = document.getElementById(`slinput_${qId}`);
+  const val  = parseInt(inp.value);
+  const pct  = (val/(q.steps.length-1))*100;
+  document.getElementById(`slfill_${qId}`).style.width  = pct+'%';
+  document.getElementById(`slthumb_${qId}`).style.left  = pct+'%';
+  document.getElementById(`slval_${qId}`).textContent   = q.steps[val].toUpperCase();
+  document.querySelectorAll(`#slwrap_${qId} .slider-step`).forEach((el,i)=>el.classList.toggle('active',i===val));
+  const lp = document.querySelector(`#slwrap_${qId} .slider-pole:first-child`);
+  const rp = document.querySelector(`#slwrap_${qId} .slider-pole.right`);
+  if(lp) lp.classList.toggle('active-pole',val<=1);
+  if(rp) rp.classList.toggle('active-pole',val>=q.steps.length-2);
+  answers[qId] = {type:'slider', stepIndex:val, text:q.stepValues[val]};
+  document.getElementById('errorInline')?.classList.remove('active');
+}
+
+function selectSliderStep(qId,si) {
+  const inp = document.getElementById(`slinput_${qId}`);
+  if(inp){inp.value=si; onSliderInput(qId);}
+}
+
+function selectOption(qId, oi) {
+  const q = activeQuestions.find(q=>q.id===qId);
+  document.querySelectorAll('#questionContainer .option').forEach(el=>el.classList.remove('selected'));
+  document.getElementById(`otw_${qId}`)?.classList.remove('active');
+  document.querySelectorAll('#questionContainer .option')[oi]?.classList.add('selected');
+  answers[qId] = {type:'option', optionIndex:oi, text:q.options[oi]};
+  document.getElementById('errorInline')?.classList.remove('active');
+}
+
+function activateOpen(qId) {
+  document.querySelectorAll('#questionContainer .option').forEach(el=>el.classList.remove('selected'));
+  document.getElementById(`otw_${qId}`)?.classList.add('active');
+  const inp = document.getElementById(`oti_${qId}`);
+  inp.focus();
+  answers[qId] = {type:'open', text:inp.value.trim()};
+  document.getElementById('errorInline')?.classList.remove('active');
+}
+
+function onOpenInput(qId) {
+  answers[qId] = {type:'open', text:document.getElementById(`oti_${qId}`).value.trim()};
+}
+
+function isAnswered(q) {
+  if (q.openTextOnly) return true;
+  const a = answers[q.id];
+  if (!a) return false;
+  if (a.type==='open' && !a.text) return false;
+  return true;
+}
+
+function goNext() {
+  const q = activeQuestions[currentIndex];
+  if (q.type==='slider' && !answers[q.id]) {
+    const mid = Math.floor(q.steps.length/2);
+    answers[q.id] = {type:'slider', stepIndex:mid, text:q.stepValues[mid]};
+  }
+  if (!isAnswered(q)) { document.getElementById('errorInline')?.classList.add('active'); return; }
+  if (currentIndex < activeQuestions.length-1) { currentIndex++; renderQuestion(currentIndex); }
+  else submitQuiz();
+}
+
+function goBack() {
+  if (currentIndex > 0) { currentIndex--; renderQuestion(currentIndex); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOADING ANIMATION
+═══════════════════════════════════════════════════════════════ */
+function startLoadingAnim() {
+  const msgs  = document.querySelectorAll('#loadingMessages span');
+  const kanji = document.getElementById('loadingKanji');
+  const kanjis = currentModule.loadingKanjis;
+  loadingMsgIdx = 0;
+  msgs.forEach(m=>m.classList.remove('active'));
+  msgs[0]?.classList.add('active');
+  loadingInterval = setInterval(()=>{
+    msgs.forEach(m=>m.classList.remove('active'));
+    loadingMsgIdx = (loadingMsgIdx+1) % msgs.length;
+    msgs[loadingMsgIdx]?.classList.add('active');
+    kanji.textContent = kanjis[loadingMsgIdx % kanjis.length];
+  }, 2200);
+}
+
+function stopLoadingAnim() {
+  if (loadingInterval) clearInterval(loadingInterval);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   API CALL HELPER
+═══════════════════════════════════════════════════════════════ */
+async function callAPI(body) {
+  const res = await fetch(PROXY_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body: JSON.stringify(body)
+  });
+  return await res.json();
+}
+
+function extractText(data) {
+  return (data.content || []).map(i=>i.text||'').join('');
+}
+
+function parseJSON(text) {
+  return JSON.parse(text.replace(/```json|```/g,'').trim());
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   QUIZ SUBMISSION
+═══════════════════════════════════════════════════════════════ */
+async function submitQuiz() {
+  document.getElementById('quizScreen').classList.remove('active');
+  document.getElementById('loadingScreen').classList.add('active');
+  startLoadingAnim();
+
+  try {
+    const summary = activeQuestions.map(q => {
+      const a = answers[q.id];
+      const ans = a?.type==='open' ? `[resposta livre] "${a.text}"` : a?.text || 'Não respondida';
+      return `Pergunta: ${q.text}\nResposta: ${ans}`;
+    }).join('\n\n');
+
+    const data = await callAPI({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 4000,
+      messages: [{role:'user', content: currentModule.buildMainPrompt(summary)}]
+    });
+
+    const result = parseJSON(extractText(data));
+    stopLoadingAnim();
+    showResults(result);
+
+  } catch(err) {
+    console.error(err);
+    stopLoadingAnim();
+    document.getElementById('loadingScreen').classList.remove('active');
+    document.getElementById('quizScreen').classList.add('active');
+    currentIndex = activeQuestions.length - 1;
+    renderQuestion(currentIndex);
+    setTimeout(()=>{ const e=document.getElementById('errorInline'); if(e){e.textContent='ERRO — TENTE NOVAMENTE'; e.classList.add('active');} }, 100);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESULTS
+═══════════════════════════════════════════════════════════════ */
+const RANK_NUMS = ['一','二','三','四','五','六','七','八','九','十'];
+
+function getItems(result) {
+  return result.animes || result.items || [];
+}
+
+function showResults(result, append=false) {
+  document.getElementById('loadingScreen').classList.remove('active');
+  const rs = document.getElementById('resultsScreen');
+  rs.classList.add('active');
+
+  if (!append) {
+    document.getElementById('resultsTagline').textContent  = result.tagline || currentModule.resultDefault;
+    document.getElementById('resultsSubtitle').textContent = result.perfil || '';
+    currentItems = getItems(result);
+    document.getElementById('resultsContainer').innerHTML = '';
+    currentItems.forEach((item,idx) => renderCard(item, idx, false));
+    updateReplaceBar();
+    rs.scrollIntoView({behavior:'smooth'});
+  } else {
+    const newItems = getItems(result).filter(item =>
+      !seenTitles.includes(item.titulo) && !currentItems.find(ci=>ci.titulo===item.titulo)
+    );
+    seenTitles.forEach(title => {
+      const card = document.querySelector(`.result-card[data-title="${CSS.escape(title)}"]`);
+      if (card) { card.style.transition='all 0.4s ease'; card.style.opacity='0'; card.style.transform='translateX(-20px) scale(0.95)'; setTimeout(()=>card.remove(),400); }
+      currentItems = currentItems.filter(item=>item.titulo!==title);
+    });
+    setTimeout(()=>{
+      newItems.forEach(item=>{ currentItems.push(item); renderCard(item, currentItems.length-1, true); });
+      seenTitles = [];
+      updateReplaceBar();
+    }, 450);
+  }
+}
+
+function renderCard(item, idx, isNew) {
+  const container = document.getElementById('resultsContainer');
+  const card = document.createElement('div');
+  card.className = 'result-card';
+  card.dataset.title = item.titulo;
+  if (isNew) card.style.animation = 'fadeUp 0.5s ease both';
+  else       card.style.animationDelay = `${idx * 0.08}s`;
+
+  const secField = currentModule.secondaryField; // 'titulo_jp' or 'titulo_original'
+  const secVal   = item[secField];
+  const secHtml  = secVal && secVal !== item.titulo
+    ? `<div class="result-title-orig">${secVal}</div>` : '';
+
+  const tagsHtml = (item.generos||[]).map((g,i)=>
+    `<span class="result-tag${i===0?' hl':''}">${g}</span>`
+  ).join('');
+
+  // Extra tags depending on module
+  const extras = [];
+  if (item.demografia) extras.push(item.demografia); // anime
+  if (item.episodios)  extras.push(item.episodios);  // anime
+  if (item.duracao)    extras.push(item.duracao);     // filmes / series / doramas
+  if (item.temporadas) extras.push(item.temporadas);  // series
+  if (item.pais)       extras.push(item.pais);
+  if (item.ano)        extras.push(item.ano);
+  const extraTagsHtml = extras.map(e=>`<span class="result-tag">${e}</span>`).join('');
+
+  const q = encodeURIComponent(item.titulo);
+  const safeTitle = item.titulo.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+
+  card.innerHTML = `
+    <div class="result-rank">${RANK_NUMS[idx]||idx+1}</div>
+    <div class="result-info">
+      <div class="result-title">${item.titulo}</div>
+      ${secHtml}
+      <div class="result-tags">${tagsHtml}${extraTagsHtml}</div>
+      ${item.nota ? `<div class="result-score">⭐ ${item.nota}</div>` : ''}
+      <div class="result-reason">${item.razao}</div>
+      <div class="result-card-footer">
+        <a class="result-link" href="${currentModule.searchFn(q)}" target="_blank">${currentModule.searchLabel}</a>
+        <button class="btn-seen" onclick="markSeen('${safeTitle}')">✓ JÁ VI ESSE</button>
+      </div>
+    </div>`;
+  container.appendChild(card);
+}
+
+function markSeen(title) {
+  const card = document.querySelector(`.result-card[data-title="${CSS.escape(title)}"]`);
+  if (!card) return;
+  card.classList.add('seen');
+  if (!seenTitles.includes(title)) seenTitles.push(title);
+  updateReplaceBar();
+}
+
+function updateReplaceBar() {
+  const bar   = document.getElementById('replaceBar');
+  const count = seenTitles.length;
+  if (count > 0) {
+    bar.classList.add('active');
+    document.getElementById('replaceCount').textContent = count;
+    document.getElementById('replaceLabel').textContent =
+      count === 1 ? currentModule.replaceLabel1 : currentModule.replaceLabelN;
+  } else {
+    bar.classList.remove('active');
+  }
+}
+
+async function replaceSeenItems() {
+  if (!seenTitles.length) return;
+  const btn = document.getElementById('btnReplace');
+  btn.disabled = true; btn.textContent = 'BUSCANDO...';
+
+  const allTitles = currentItems.map(i=>i.titulo).concat(seenTitles);
+  const summary   = Object.entries(answers).map(([qid,a])=>{
+    const q   = activeQuestions.find(q=>q.id===qid);
+    const ans = a.type==='open' ? `[resposta livre] "${a.text}"` : a.text;
+    return `${q?.text}\nResposta: ${ans}`;
+  }).join('\n\n');
+
+  try {
+    const data = await callAPI({
+      model:'claude-sonnet-4-5', max_tokens:2000,
+      messages:[{role:'user', content: currentModule.buildReplacePrompt(summary, allTitles, seenTitles)}]
+    });
+    const result = parseJSON(extractText(data));
+    showResults(result, true);
+  } catch(err) { console.error(err); }
+  finally { btn.disabled=false; btn.textContent='↺ TROCAR VISTOS'; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIMILAR MODE
+═══════════════════════════════════════════════════════════════ */
+async function confirmAnime() {
+  const name = document.getElementById('animeNameInput').value.trim();
+  if (!name) return;
+  similarName = name;
+  document.getElementById('animeInputWrap').style.display = 'none';
+  document.getElementById('chatWrap').classList.add('active');
+  showTyping();
+  const firstQ = await askChatAI(null, true);
+  hideTyping();
+  appendAIBubble(firstQ);
+  showChatInput();
+}
+
+function appendAIBubble(text) {
+  const div = document.createElement('div');
+  div.className = 'chat-bubble ai';
+  div.innerHTML = `<span class="bubble-label">${currentModule.yomiLabel}</span>${text}`;
+  document.getElementById('chatMessages').appendChild(div);
+  div.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function appendUserBubble(text) {
+  const div = document.createElement('div');
+  div.className = 'chat-bubble user';
+  div.textContent = text;
+  document.getElementById('chatMessages').appendChild(div);
+  div.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function showTyping()  { const t=document.getElementById('chatTyping'); t.classList.add('active'); t.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+function hideTyping()  { document.getElementById('chatTyping').classList.remove('active'); }
+function showChatInput(){ document.getElementById('chatInputRow').classList.add('active'); document.getElementById('chatInput').focus(); }
+function hideChatInput(){ document.getElementById('chatInputRow').classList.remove('active'); }
+
+async function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = 'auto';
+  document.getElementById('btnSend').disabled = true;
+
+  appendUserBubble(text);
+  chatHistory.push({role:'user', content:text});
+  chatQCount++;
+
+  if (chatQCount >= MAX_CHAT_Q) {
+    hideChatInput(); showTyping();
+    await generateSimilarResults();
+    hideTyping();
+  } else {
+    showTyping(); hideChatInput();
+    const nextQ = await askChatAI(text, false);
+    hideTyping(); appendAIBubble(nextQ); showChatInput();
+    document.getElementById('btnSend').disabled = false;
+  }
+}
+
+async function askChatAI(userReply, isFirst) {
+  const sysPrompt = currentModule.buildChatSystemPrompt(similarName, MAX_CHAT_Q);
+  const messages  = isFirst
+    ? [{role:'user', content:`Comece com a primeira pergunta sobre "${similarName}".`}]
+    : [...chatHistory.slice(0,-1).map(m=>({role:m.role,content:m.content})),{role:'user',content:userReply}];
+  try {
+    const data = await callAPI({model:'claude-sonnet-4-5', max_tokens:300, system:sysPrompt, messages});
+    const text  = extractText(data).trim();
+    chatHistory.push({role:'assistant', content:text});
+    return text;
+  } catch(e) { return 'Algo deu errado. Pode tentar responder novamente?'; }
+}
+
+async function generateSimilarResults() {
+  document.getElementById('similarScreen').classList.remove('active');
+  document.getElementById('loadingScreen').classList.add('active');
+  startLoadingAnim();
+
+  const conversation = chatHistory.map(m =>
+    `${m.role==='assistant'?'YOMI':'Usuário'}: ${m.content}`
+  ).join('\n\n');
+
+  try {
+    const data = await callAPI({
+      model:'claude-sonnet-4-5', max_tokens:4000,
+      messages:[{role:'user', content: currentModule.buildSimilarPrompt(similarName, conversation)}]
+    });
+    const result = parseJSON(extractText(data));
+    stopLoadingAnim();
+    showResults(result);
+  } catch(err) {
+    console.error(err);
+    stopLoadingAnim();
+    document.getElementById('loadingScreen').classList.remove('active');
+    document.getElementById('similarScreen').classList.add('active');
+    appendAIBubble('Ops, algo deu errado ao gerar as recomendações. Pode tentar novamente?');
+    showChatInput();
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LO-FI PLAYER — HTML5 Audio
+═══════════════════════════════════════════════════════════════ */
+const LOFI_STREAMS = [
+  'https://stream.zeno.fm/f3wvbbqmdg8uv',          // Lofi Hip Hop Radio
+  'https://stream.zeno.fm/0r0xa792kwzuv',          // Lofi backup
+  'https://streams.ilovemusic.de/iloveradio17.mp3' // iLove Lofi
+];
+
+let lofiAudio     = null;
+let lofiPlaying   = false;
+let lofiStreamIdx = 0;
+
+function initLofi() {
+  lofiAudio           = new Audio();
+  lofiAudio.volume    = 0.5;
+  lofiAudio.preload   = 'none';
+  lofiAudio.src       = LOFI_STREAMS[lofiStreamIdx];
+
+  lofiAudio.addEventListener('playing', () => {
+    lofiPlaying = true;
+    document.getElementById('lofi-play-btn').textContent = '⏸';
+    document.getElementById('lofi-player').classList.add('playing');
+  });
+  lofiAudio.addEventListener('pause', () => {
+    lofiPlaying = false;
+    document.getElementById('lofi-play-btn').textContent = '▶';
+    document.getElementById('lofi-player').classList.remove('playing');
+  });
+  lofiAudio.addEventListener('error', () => {
+    lofiStreamIdx = (lofiStreamIdx + 1) % LOFI_STREAMS.length;
+    lofiAudio.src = LOFI_STREAMS[lofiStreamIdx];
+    if (lofiPlaying) lofiAudio.play().catch(()=>{});
+  });
+}
+
+function playLofi() {
+  if (!lofiAudio) initLofi();
+  const btn = document.getElementById('lofi-play-btn');
+  btn.textContent = '…';
+  lofiAudio.play().catch(() => { btn.textContent = '▶'; });
+}
+
+function toggleLofi() {
+  if (lofiPlaying) { lofiAudio.pause(); } else { playLofi(); }
+}
+
+// Inicia ao primeiro toque/clique em qualquer lugar da página
+(function() {
+  function startOnInteraction() {
+    if (!lofiPlaying) playLofi();
+    document.removeEventListener('click',    startOnInteraction);
+    document.removeEventListener('touchend', startOnInteraction);
+  }
+  document.addEventListener('click',    startOnInteraction);
+  document.addEventListener('touchend', startOnInteraction);
+})();
+
+function setLofiVolume(val) {
+  if (!lofiAudio) initLofi();
+  lofiAudio.volume = parseInt(val) / 100;
+}
+</script>
+
+</body>
+</html>
